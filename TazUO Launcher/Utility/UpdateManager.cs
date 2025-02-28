@@ -15,7 +15,7 @@ namespace TazUO_Launcher.Utility
 {
     class UpdateManager
     {
-        private const string UPDATE_ZIP_URL = "https://github.com/bittiez/ClassicUO/releases/latest/download/TazUO.zip";
+        private const string UPDATE_ZIP_URL = "https://github.com/bittiez/TazUO/releases/latest/download/TazUO.zip";
 
         public static UpdateManager Instance { get; private set; } = new UpdateManager();
         public bool DownloadInProgress { get; private set; } = false;

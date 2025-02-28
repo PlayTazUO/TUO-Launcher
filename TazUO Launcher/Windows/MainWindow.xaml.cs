@@ -149,7 +149,7 @@ namespace TazUO_Launcher
 
         private void DiscordIconMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var destinationurl = "https://discord.gg/SqwtB5g95H";
+            var destinationurl = "https://discord.gg/QvqzkB95G4";
             var sInfo = new System.Diagnostics.ProcessStartInfo(destinationurl)
             {
                 UseShellExecute = true,

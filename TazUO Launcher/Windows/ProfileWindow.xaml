@@ -44,7 +44,7 @@
         <ListBox x:Name="ProfileList" Width="250" Height="350" Canvas.Bottom="5" Canvas.Left="5" Foreground="White" BorderBrush="#202020" BorderThickness="5">
         </ListBox>
 
-        <Canvas Width="510" Height="400" Canvas.Bottom="5" Canvas.Right="5">
+        <Canvas Width="510" Height="400" Canvas.Bottom="5" Canvas.Right="5" x:Name="ProfileEditArea">
             <Border Width="510" Height="400" BorderBrush="#202020" BorderThickness="5"/>
             <TabControl Canvas.Top="5" Canvas.Left="5" Width="500" Height="390" Style="{DynamicResource MaterialDesignFilledTabControl}">
                 <TabItem Header="General">

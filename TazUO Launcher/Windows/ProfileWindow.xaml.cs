@@ -32,6 +32,8 @@ namespace TazUO_Launcher.Windows
                 ProfileList.Items.Add(new ListBoxItem() { Content = profile.Name });
             }
 
+            ProfileEditArea.IsEnabled = false;
+
             ButtonNew.Click += ButtonNew_MouseUp;
             ButtonDelete.Click += ButtonDelete_MouseUp;
             ButtonCopy.Click += ButtonCopy_MouseUp;
@@ -129,6 +131,11 @@ namespace TazUO_Launcher.Windows
                     {
                         selectedProfile.CUOSettings.Username = EntryAccountName.Text;
                         selectedProfile.SaveAsync(EntryAccountName);
+                        if(!string.IsNullOrEmpty(EntryAccountName.Text))
+                        {
+                            selectedProfile.CUOSettings.SaveAccount = true;
+                            EntrySavePass.IsChecked = true;
+                        }
                     }
                 }
             };
@@ -140,6 +147,11 @@ namespace TazUO_Launcher.Windows
                     {
                         selectedProfile.CUOSettings.Password = Crypter.Encrypt(EntryAccountPass.Password);
                         selectedProfile.SaveAsync(EntryAccountPass);
+                        if (!string.IsNullOrEmpty(EntryAccountPass.Password))
+                        {
+                            selectedProfile.CUOSettings.SaveAccount = true;
+                            EntrySavePass.IsChecked = true;
+                        }
                     }
                 }
             };
@@ -436,6 +448,7 @@ namespace TazUO_Launcher.Windows
                     {
                         selectedProfile = profile;
                         SetEntries(profile);
+                        ProfileEditArea.IsEnabled = true;
                     }
                 }
             }
@@ -471,6 +484,8 @@ namespace TazUO_Launcher.Windows
                 ProfileList.Items.RemoveAt(indx);
 
                 selectedProfile = null;
+
+                ProfileEditArea.IsEnabled = false;
             }
         }
 

@@ -234,12 +234,12 @@ namespace TazUO_Launcher.Utility
 
                 if (MainReleaseData != null)
                 {
-                    if (MainReleaseData.tag_name.StartsWith("v"))
+                    if (MainReleaseData.name.StartsWith("v"))
                     {
-                        MainReleaseData.tag_name = MainReleaseData.tag_name.Substring(1);
+                        MainReleaseData.name = MainReleaseData.name.Substring(1);
                     }
 
-                    if (Version.TryParse(MainReleaseData.tag_name, out var version))
+                    if (Version.TryParse(MainReleaseData.name, out var version))
                     {
                         RemoteVersion = version;
                         Utility.UIDispatcher.InvokeAsync(() =>

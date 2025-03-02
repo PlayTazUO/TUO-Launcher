@@ -234,7 +234,7 @@ namespace TazUO_Launcher
                             proc.Arguments += " -skipupdatecheck";
                             if (profile.CUOSettings.AutoLogin && !string.IsNullOrEmpty(profile.LastCharacterName))
                             {
-                                proc.Arguments += $" -lastcharactername {profile.LastCharacterName}";
+                                proc.Arguments += $" -lastcharactername \"{profile.LastCharacterName}\"";
                             }
                             if (profile.CUOSettings.AutoLogin)
                             {

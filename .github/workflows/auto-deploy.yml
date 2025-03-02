@@ -1,0 +1,117 @@
+name: TUO-Deploy
+
+on:
+  push:
+    branches: "main"
+  workflow_dispatch:
+      
+concurrency:
+  group: maindeploy
+  cancel-in-progress: true
+
+env:
+  OUTPUT_PATH: '../../bin/dist'
+  PROJ: "TazUO Launcher/TazUO Launcher.csproj"
+  ZIP_NAME: "TazUO.Launcher.zip"
+  TAG_NAME: "TazUO-Launcher"
+
+  DOTNET_NOLOGO: false
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  NUGET_XMLDOC_MODE: skip
+
+jobs:
+  build:
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      release_notes: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+    strategy:
+      max-parallel: 1
+      matrix:
+       os: [  windows-latest ]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: 'main'
+
+    - name: Extract Version
+      shell: bash
+      run: |
+        export LC_ALL=C.UTF-8
+        echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' src/ClassicUO.Client/ClassicUO.Client.csproj)" >> $GITHUB_ENV
+        
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+            
+    - name: Build
+      run: dotnet publish ${{ env.PROJ }} -c Release -o ${{ env.OUTPUT_PATH }}
+      
+    - name: Create package
+      uses: thedoctor0/zip-release@master
+      with:
+        type: 'zip'
+        directory: ${{ env.OUTPUT_PATH }}
+        filename: ${{ env.ZIP_NAME }}
+        exclusions: '*.zip'
+
+    - name: Get last release commit
+      shell: bash
+      id: last_release
+      run: |
+        if git rev-parse --verify "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
+          LAST_COMMIT=$(git rev-parse "${{ env.TAG_NAME }}")
+          echo "LAST_COMMIT=$LAST_COMMIT" >> $GITHUB_ENV
+          echo "Last release commit: $LAST_COMMIT"
+        else
+          echo "No previous release found."
+          echo "LAST_COMMIT=" >> $GITHUB_ENV
+        fi
+
+    - name: Generate release notes
+      shell: bash
+      id: release_notes
+      run: |
+        if [ -z "$LAST_COMMIT" ]; then
+          echo "No previous release found. Listing 10 latest commits."
+          RELEASE_NOTES=$(git log -10 --pretty=format:"- %s")
+        else
+          echo "Generating release notes from commit $LAST_COMMIT to HEAD."
+          RELEASE_NOTES=$(git log ${LAST_COMMIT}..HEAD --pretty=format:"- %s")
+        fi
+    
+        printf "RELEASE_NOTES<<EOF\n%s\nEOF\n" "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+
+    - name: Echo release notes
+      shell: bash
+      run: echo "${{ steps.release_notes.outputs.RELEASE_NOTES }}"
+
+    - name: Remove old Release
+      uses: dev-drprasad/delete-tag-and-release@v0.2.1
+      with:
+        delete_release: true
+        tag_name: ${{ env.TAG_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ env.ZIP_NAME }}"
+        name: 'v${{ env.VERSION }}'
+        body: |
+          These are built automatically on the main branch. 
+          This is version v${{ env.VERSION }} 
+          
+          # Release notes
+          ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+        makeLatest: true
+        allowUpdates: true
+        prerelease: false
+        tag: ${{ env.TAG_NAME }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+        

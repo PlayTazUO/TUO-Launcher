@@ -45,6 +45,11 @@ jobs:
         export LC_ALL=C.UTF-8
         echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' '${{ env.PROJ }}')" >> $GITHUB_ENV
         
+    - name: Create tag
+      run: |
+        git tag v${{ env.VERSION }}
+        git push origin v${{ env.VERSION }}
+        
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
@@ -116,10 +121,5 @@ jobs:
         prerelease: false
         tag: ${{ env.TAG_NAME }}
         token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create tag
-      run: |
-        git tag v${{ env.VERSION }}
-        git push origin v${{ env.VERSION }}
         
         

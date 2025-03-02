@@ -1,8 +1,11 @@
-name: TUO-Deploy
+name: Launcher-Deploy
 
 on:
   push:
     branches: "main"
+    paths-ignore:
+      - "*.yml"
+      - "*.md"
   workflow_dispatch:
       
 concurrency:
@@ -113,5 +116,10 @@ jobs:
         prerelease: false
         tag: ${{ env.TAG_NAME }}
         token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create tag
+      run: |
+        git tag v${{ env.VERSION }}
+        git push origin v${{ env.VERSION }}
         
         

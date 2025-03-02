@@ -40,7 +40,7 @@ jobs:
       shell: bash
       run: |
         export LC_ALL=C.UTF-8
-        echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' src/ClassicUO.Client/ClassicUO.Client.csproj)" >> $GITHUB_ENV
+        echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' ${{ env.PROJ }})" >> $GITHUB_ENV
         
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4

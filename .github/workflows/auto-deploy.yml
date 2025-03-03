@@ -46,6 +46,7 @@ jobs:
         echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' '${{ env.PROJ }}')" >> $GITHUB_ENV
         
     - name: Create tag
+      continue-on-error: true
       run: |
         git tag v${{ env.VERSION }}
         git push origin v${{ env.VERSION }}

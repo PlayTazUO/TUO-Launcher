@@ -32,15 +32,16 @@ namespace TazUO_Launcher.Utility
             return Path.Combine(LauncherSettings.LauncherPath, "TazUO", "ClassicUO.exe");
         }
 
-        public static string AskForFile(string intialDirectory, string fileFilter)
+        public static string AskForFile(string intialDirectory, string fileFilter = "")
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 InitialDirectory = intialDirectory,
-                Filter = fileFilter,
                 CheckFileExists = true,
                 CheckPathExists = true
             };
+            if(!string.IsNullOrEmpty(fileFilter))
+                openFileDialog.Filter = fileFilter;
 
             var result = openFileDialog.ShowDialog();
             if (result == true)

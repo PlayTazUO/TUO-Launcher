@@ -177,7 +177,7 @@ namespace TazUO_Launcher.Utility
                     {
                         foreach (GitHubReleaseData.Asset asset in bleedingEdgeData.assets)
                         {
-                            if (asset.name.EndsWith(".zip") && asset.name.StartsWith("WindowsTazUO"))
+                            if (asset.name.EndsWith(".zip") && asset.name.StartsWith("TazUO"))
                             {
                                 httpClient.DownloadAsync(asset.browser_download_url, file, downloadProgress).Wait();
                                 break;

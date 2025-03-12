@@ -45,10 +45,10 @@ namespace TazUO_Launcher.Windows
                 if (selectedProfile != null)
                 {
 
-                    string selectDir = Utility.Utility.AskForFile(EntryUODirectory.Text, "UO Client (*.exe)|*.exe");
+                    string selectDir = Utility.Utility.AskForFolder();
                     if (!string.IsNullOrEmpty(selectDir))
                     {
-                        EntryUODirectory.Text = Path.GetDirectoryName(selectDir);
+                        EntryUODirectory.Text = selectDir;
                         selectedProfile.CUOSettings.UltimaOnlineDirectory = EntryUODirectory.Text;
 
                         if (ClientVersionHelper.TryParseFromFile(Path.Combine(selectedProfile.CUOSettings.UltimaOnlineDirectory, "client.exe"), out string version))

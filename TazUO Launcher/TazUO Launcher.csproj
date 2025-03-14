@@ -6,8 +6,8 @@
     <RootNamespace>TazUO_Launcher</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>1.9.3</AssemblyVersion>
-    <FileVersion>1.9.3</FileVersion>
+    <AssemblyVersion>1.9.4</AssemblyVersion>
+    <FileVersion>1.9.4</FileVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <SignAssembly>False</SignAssembly>
     <Title>TazUO Launcher</Title>

@@ -15,7 +15,7 @@
         FontFamily="{DynamicResource MaterialDesignFont}"
         Background="{DynamicResource PrimaryHueDarkBrush}"
         Icon="/Resources/taz2.png"
-        ResizeMode="NoResize"
+        ResizeMode="CanMinimize"        
         Title="TazUO Launcher" SizeToContent="WidthAndHeight">
     <Window.Resources>
         <Style TargetType="{x:Type ComboBoxItem}">

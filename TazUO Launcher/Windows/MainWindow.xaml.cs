@@ -331,6 +331,12 @@ namespace TazUO_Launcher
             });
         }
 
+        private void ToolsMenu_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ToolsMenu.IsOpen = true;
+            e.Handled = true;
+        }
+
         private void UpdateLocalVersion()
         {
             Version? l = UpdateManager.Instance.GetInstalledVersion(Utility.Utility.GetTazUOExecutable());

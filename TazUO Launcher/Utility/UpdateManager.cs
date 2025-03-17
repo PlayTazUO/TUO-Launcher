@@ -286,12 +286,12 @@ namespace TazUO_Launcher.Utility
 
                 if (LauncherReleaseData != null)
                 {
-                    if (LauncherReleaseData.tag_name.StartsWith("v"))
+                    if (LauncherReleaseData.name.StartsWith("v"))
                     {
-                        LauncherReleaseData.tag_name = LauncherReleaseData.tag_name.Substring(1);
+                        LauncherReleaseData.name = LauncherReleaseData.name.Substring(1);
                     }
 
-                    if (Version.TryParse(LauncherReleaseData.tag_name, out var version))
+                    if (Version.TryParse(LauncherReleaseData.name, out var version))
                     {
                         RemoteLauncherVersion = version;
                         Utility.UIDispatcher.InvokeAsync(() =>

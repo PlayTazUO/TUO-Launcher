@@ -119,7 +119,15 @@
 
             <Button Name="ToolsLink"
                 Canvas.Right="5" Canvas.Top="5"
-                Classes="Small">
+                Classes="Small"
+                Click="ToolsButtonClick">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Download latest main build" Click="DownloadMainBuildClick"/>
+                            <MenuItem Header="Download latest dev build" Click="DownloadDevBuildClick"/>
+                            <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
                 [ tools ]
             </Button>
             <Button Name="DiscordLink"

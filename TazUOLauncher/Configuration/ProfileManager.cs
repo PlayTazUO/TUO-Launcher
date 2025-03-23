@@ -69,7 +69,7 @@ static class ProfileManager
             }
         });
     }
-    public static bool TryFindProfile(string name, out Profile? profile)
+    public static bool TryFindProfile(string? name, out Profile? profile)
     {
         if (name == null)
         {

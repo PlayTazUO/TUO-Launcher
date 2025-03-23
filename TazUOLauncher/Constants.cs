@@ -14,4 +14,5 @@ internal static class CONSTANTS {
     public const string LAUNCHER_UPDATE_AVAILABLE = "Launcher update available";
     public const string NO_CLIENT_AVAILABLE = "No client found";
     public const string EDIT_PROFILES = "[ Edit Profiles ]";
+    public const string ZIP_STARTS_WITH = "TazUO";
 }

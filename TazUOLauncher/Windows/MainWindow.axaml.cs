@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using TazUO_Launcher;
 
 namespace TazUOLauncher;
@@ -11,23 +14,33 @@ public partial class MainWindow : Window
 {
     private MainWindowViewModel viewModel;
     private ClientStatus clientStatus = ClientStatus.INITIALIZING;
-
     private Queue<ReleaseChannel> updatesAvailable = new Queue<ReleaseChannel>();
+    private ReleaseChannel nextDownloadType = ReleaseChannel.INVALID;
+
+    private Profile? selectedProfile;
 
     public MainWindow()
     {
         InitializeComponent();
+
         DataContext = viewModel = new MainWindowViewModel();
 
         DoChecksAsync();
         LoadProfiles();
     }
 
-    private async void LoadProfiles(){
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        foreach (Profile p in ProfileManager.AllProfiles)
+            p?.Save();
+
+        base.OnClosing(e);
+    }
+    private async void LoadProfiles()
+    {
         await ProfileManager.GetAllProfiles();
         SetProfileSelectorComboBox();
     }
-
     private async void DoChecksAsync()
     {
         var remoteVersionInfo = UpdateHelper.GetAllReleaseData();
@@ -39,7 +52,8 @@ public partial class MainWindow : Window
         ClientUpdateChecks();
         HandleUpdates();
     }
-    private void SetProfileSelectorComboBox(){
+    private void SetProfileSelectorComboBox()
+    {
         viewModel.Profiles = [CONSTANTS.EDIT_PROFILES, .. ProfileManager.GetProfileNames()];
     }
     private void CheckLauncherVersion()
@@ -70,43 +84,96 @@ public partial class MainWindow : Window
         }
         else
         {
+            viewModel.DangerNoticeString = string.Empty;
             viewModel.LocalVersionString = string.Format(CONSTANTS.LOCAL_VERSION_FORMAT, ClientHelper.LocalClientVersion.ToHumanReable());
             viewModel.PlayButtonEnabled = true;
             clientStatus = ClientStatus.READY;
         }
     }
-    private void ClientUpdateChecks(){
-        if(clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client insalled already
-            if(UpdateHelper.HaveData(ReleaseChannel.MAIN)){
-                if(UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion() > ClientHelper.LocalClientVersion){
+    private void ClientUpdateChecks()
+    {
+        if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client insalled already
+            if (UpdateHelper.HaveData(ReleaseChannel.MAIN))
+            {
+                if (UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion() > ClientHelper.LocalClientVersion)
+                {
                     updatesAvailable.Enqueue(ReleaseChannel.MAIN);
                 }
             }
     }
-    private void HandleUpdates(){
-        if(updatesAvailable.TryDequeue(out var updateType)){
-            switch(updateType){
+    private void HandleUpdates()
+    {
+        nextDownloadType = ReleaseChannel.INVALID;
+        if (updatesAvailable.TryDequeue(out var updateType))
+        {
+            switch (updateType)
+            {
                 case ReleaseChannel.MAIN:
                     viewModel.UpdateButtonString = clientStatus == ClientStatus.NO_LOCAL_CLIENT ? CONSTANTS.NO_CLIENT_AVAILABLE : CONSTANTS.CLIENT_UPDATE_AVAILABLE;
                     viewModel.ShowDownloadAvailableButton = true;
-                    ///Call this methos again after update is completed(download button clicked, etc)
+                    nextDownloadType = ReleaseChannel.MAIN;
+                    break;
+                case ReleaseChannel.LAUNCHER:
+                    viewModel.UpdateButtonString = CONSTANTS.LAUNCHER_UPDATE_AVAILABLE;
+                    viewModel.ShowDownloadAvailableButton = true;
+                    nextDownloadType = ReleaseChannel.LAUNCHER;
                     break;
             }
         }
     }
+    private void DoNextDownload()
+    {
+        if (nextDownloadType == ReleaseChannel.INVALID || clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+
+        viewModel.ShowDownloadAvailableButton = false;
+        var prog = new DownloadProgress();
+        prog.DownloadProgressChanged += (_, _) =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() => viewModel.DownloadProgressBarPercent = (int)(prog.ProgressPercentage * 100));
+        };
+
+        viewModel.PlayButtonEnabled = false;
+        clientStatus = ClientStatus.DOWNLOAD_IN_PROGRESS;
+        viewModel.ShowDownloadAvailableButton = false;
+        viewModel.DownloadProgressBarPercent = 0;
+        viewModel.ShowDownloadProgressBar = true;
+
+        UpdateHelper.DownloadAndInstallZip(nextDownloadType, prog, () =>
+        {
+            viewModel.ShowDownloadProgressBar = false;
+            ClientHelper.LocalClientVersion = null;
+            ClientExistsChecks();
+            HandleUpdates();
+        });
+    }
+
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
     {
-
+        ClientHelper.TrySetPlusXUnix();
+        if (selectedProfile != null)
+            Utility.LaunchClient(selectedProfile);
     }
 
     public void DownloadButtonClicked(object sender, RoutedEventArgs args)
     {
-
+        DoNextDownload();
     }
 
     public void ProfileSelectionChanged(object sender, SelectionChangedEventArgs args)
     {
+        var dd = ((ComboBox)sender);
+        if (dd == null) return;
 
+        if (dd.SelectedIndex == 0)
+        { //Edit Profile
+
+        }
+        else if (dd.SelectedItem != null && dd.SelectedItem is string)
+        {
+            string si = (string)dd.SelectedItem;
+            if (si != null && si != null)
+                ProfileManager.TryFindProfile(si, out selectedProfile);
+        }
     }
 
     public void OpenWikiClicked(object sender, RoutedEventArgs args)
@@ -121,6 +188,27 @@ public partial class MainWindow : Window
     {
         WebLinks.OpenURLInBrowser(CONSTANTS.GITHUB_URL);
     }
+    public void DownloadMainBuildClick(object sender, RoutedEventArgs args)
+    {
+        if (clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+        nextDownloadType = ReleaseChannel.MAIN;
+        DoNextDownload();
+    }
+    public void DownloadDevBuildClick(object sender, RoutedEventArgs args)
+    {
+        if (clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+        nextDownloadType = ReleaseChannel.DEV;
+        DoNextDownload();
+    }
+    public void ImportCUOLauncherClick(object sender, RoutedEventArgs args)
+    {
+
+    }
+    public void ToolsButtonClick(object sender, RoutedEventArgs args)
+    {
+        ((Button)sender)?.ContextMenu?.Open();
+        args.Handled = true;
+    }
 }
 
 public class MainWindowViewModel : INotifyPropertyChanged
@@ -132,7 +220,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private string remoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, "Checking...");
     private string localVersionString = "Local Version: Checking...";
     private string localLauncherVersionString = $"Launcher Version: {LauncherVersion.GetLauncherVersion().ToHumanReable()}";
-    private string dangerNoticeString;
+    private string dangerNoticeString = string.Empty;
     private bool playButtonEnabled;
     private string updateButtonString = string.Empty;
 

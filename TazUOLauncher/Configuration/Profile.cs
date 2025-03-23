@@ -8,7 +8,7 @@ namespace TazUOLauncher;
 class Profile
 {
     [JsonIgnore]
-    private Settings _CUOSettings;
+    private Settings? _CUOSettings;
 
     [JsonIgnore]
     public bool IsDeleted = false;
@@ -19,7 +19,7 @@ class Profile
     public string AdditionalArgs { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public Settings CUOSettings
+    public Settings? CUOSettings
     {
         get
         {
@@ -71,6 +71,8 @@ class Profile
             var data = JsonSerializer.Serialize(this, typeof(Profile));
             Directory.CreateDirectory(PathHelper.ProfilesPath);
             File.WriteAllText(GetProfileFilePath(), data);
+
+            if (CUOSettings == null) return;
 
             var settingsData = CUOSettings.GetSaveData();
             Directory.CreateDirectory(PathHelper.SettingsPath);

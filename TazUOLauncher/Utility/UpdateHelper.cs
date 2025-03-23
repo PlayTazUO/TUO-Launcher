@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia;
 using TazUO_Launcher.Utility;
 
 namespace TazUOLauncher;
@@ -78,5 +81,54 @@ internal static class UpdateHelper
             Console.WriteLine(e);
             return null;
         }
+    }
+
+    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
+    {
+        if (!HaveData(channel)) return;
+
+        GitHubReleaseData releaseData = ReleaseData[channel];
+
+        if (releaseData == null || releaseData.assets == null) return;
+
+        string extractTo = string.Empty;
+        switch (channel)
+        {
+            case ReleaseChannel.LAUNCHER:
+                extractTo = Path.Combine(PathHelper.LauncherPath, "LauncherUpdate");
+                break;
+            default:
+                extractTo = PathHelper.ClientPath;
+                break;
+        }
+
+        await Task.Run(() =>
+        {
+            foreach (GitHubReleaseData.Asset asset in releaseData.assets)
+            {
+                if (asset.name != null && asset.name.EndsWith(".zip") && asset.name.StartsWith(CONSTANTS.ZIP_STARTS_WITH) && asset.browser_download_url != null)
+                {
+                    try
+                    {
+                        string tempFilePath = Path.GetTempFileName();
+                        using (var file = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            HttpClient httpClient = new HttpClient();
+                            httpClient.DownloadAsync(asset.browser_download_url, file, downloadProgress).Wait();
+                        }
+
+                        Directory.CreateDirectory(extractTo);
+                        ZipFile.ExtractToDirectory(tempFilePath, extractTo, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+
+                    break;
+                }
+            }
+            onCompleted?.Invoke();
+        });
     }
 }

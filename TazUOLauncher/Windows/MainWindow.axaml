@@ -1,0 +1,131 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:TazUOLauncher"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="800" Height="450" CanResize="False"
+        x:DataType="vm:MainWindowViewModel"
+        x:Class="TazUOLauncher.MainWindow"
+        Icon="resm:TazUOLauncher.Resources.taz2.ico?assembly=TazUOLauncher"
+        Title="TazUOLauncher">
+        <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
+            <Image 
+                Source="resm:TazUOLauncher.Resources.uo_bg.png?assembly=TazUOLauncher" 
+                Stretch="Fill" 
+                Width="{Binding $parent.Bounds.Width}" 
+                Height="{Binding $parent.Bounds.Height}"
+                Opacity="1">
+                    <Image.OpacityMask>
+                        <RadialGradientBrush Center="50%, 60%" GradientOrigin="50%, 60%" Radius="0.4">
+                            <!-- Transparent at the center -->
+                            <GradientStop Color="Transparent" Offset="0.3" />
+                            <!-- Fully opaque at the edges -->
+                            <GradientStop Color="Black" Offset="1.0" />
+                        </RadialGradientBrush>
+                    </Image.OpacityMask>
+                </Image>
+        
+            <Label Classes="Danger" 
+                HorizontalContentAlignment="Center"
+                Width="{Binding $parent.Bounds.Width}" 
+                Content="{Binding DangerNoticeString, DataType={x:Type vm:MainWindowViewModel}}"/>
+
+            <Rectangle 
+                RadiusX="20"        
+                RadiusY="20"         
+                Width="200"           
+                Height="200"
+                Canvas.Left="300" 
+                Canvas.Top="40"
+                Opacity="0.55"
+                >
+                <Rectangle.Effect>
+                    <DropShadowEffect/>
+                </Rectangle.Effect>
+                <Rectangle.Fill>
+                    <ImageBrush Source="resm:TazUOLauncher.Resources.taz2.png?assembly=TazUOLauncher"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <ComboBox x:Name="ProfileSelector"
+                PlaceholderText="Select a profile"
+                Name="ProfileSelector"
+                Canvas.Left="300"
+                Canvas.Top="255" 
+                MaxWidth="200"
+                Width="200"
+                ItemsSource="{Binding Profiles, DataType={x:Type vm:MainWindowViewModel}}"
+                SelectionChanged="ProfileSelectionChanged"/>
+
+            <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled, DataType={x:Type vm:MainWindowViewModel}}"
+                Margin="0, 1, 0, 0"
+                Width="200"            
+                Canvas.Left="300"           
+                Canvas.Top="{Binding #ProfileSelector.Bounds.Bottom}" 
+                Click="PlayButtonClicked"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+                Play
+            </Button>
+
+            <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar, DataType={x:Type vm:MainWindowViewModel}}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent, DataType={x:Type vm:MainWindowViewModel}}"/>
+            <Label Margin="0, 1, 0, 0" IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" Canvas.Left="330" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}">Downloading an update..</Label>
+
+            <Button x:Name="DownloadUpdateButton" IsVisible="{Binding ShowDownloadAvailableButton, DataType={x:Type vm:MainWindowViewModel}}" Canvas.Bottom="65" Canvas.Left="325" Height="60" Width="150" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">Update available<LineBreak/>Download now</TextBlock>
+            </Button>
+
+            <Rectangle Name="VersionRectangle" Width="220" Height="55" Canvas.Bottom="5" Canvas.Left="290" Fill="#BF202020" HorizontalAlignment="Left" Canvas.Top="390" VerticalAlignment="Center"></Rectangle>
+            <Label Name="RemoteVersionText" 
+                Classes="Warning"
+                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
+                Canvas.Top="{Binding #VersionRectangle.Bounds.Top}"
+                Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                HorizontalContentAlignment="Center" 
+                Width="{Binding #VersionRectangle.Bounds.Width}"/>
+
+            <Label Name="LocalVersionText" 
+                Classes="Warning"
+                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
+                Canvas.Top="{Binding #RemoteVersionText.Bounds.Bottom}"
+                Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                HorizontalContentAlignment="Center" 
+                Width="{Binding #VersionRectangle.Bounds.Width}"/>
+
+            <Label Name="LauncherVersionText"
+                Classes="Warning"
+                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
+                Canvas.Top="{Binding #LocalVersionText.Bounds.Bottom}" 
+                Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                HorizontalContentAlignment="Center" 
+                Width="{Binding #VersionRectangle.Bounds.Width}"/>
+
+                <Button Name="ToolsLink"
+                    Canvas.Right="5" Canvas.Top="5"
+                    Classes="Small">
+                    [ tools ]
+                </Button>
+                <Button Name="DiscordLink"
+                    Margin="0, 1, 0, 0"
+                    Canvas.Right="5" Canvas.Top="{Binding #ToolsLink.Bounds.Bottom}"
+                    Classes="Small" Click="OpenDiscordClicked">
+                    discord
+                </Button>
+                <Button Name="GithubLink"
+                    Margin="0, 1, 0, 0"
+                    Canvas.Right="5" Canvas.Top="{Binding #DiscordLink.Bounds.Bottom}"
+                    Classes="Small" Click="OpenGithubClicked">
+                    github
+                </Button>
+                <Button Canvas.Right="5" Canvas.Top="{Binding #GithubLink.Bounds.Bottom}"
+                    Margin="0, 1, 0, 0"
+                    Classes="Small" Click="OpenWikiClicked">
+                    wiki
+                </Button>
+
+
+            
+
+        </Canvas>
+</Window>

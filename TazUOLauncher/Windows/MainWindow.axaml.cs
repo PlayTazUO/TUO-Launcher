@@ -1,30 +1,46 @@
-using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using TazUO_Launcher;
 
 namespace TazUOLauncher;
 
 public partial class MainWindow : Window
 {
     private MainWindowViewModel viewModel;
+    private ClientStatus clientStatus = ClientStatus.INITIALIZING;
+
+    private Queue<ReleaseChannel> updatesAvailable = new Queue<ReleaseChannel>();
+
     public MainWindow()
     {
         InitializeComponent();
         DataContext = viewModel = new MainWindowViewModel();
 
         DoChecksAsync();
+        LoadProfiles();
+    }
+
+    private async void LoadProfiles(){
+        await ProfileManager.GetAllProfiles();
+        SetProfileSelectorComboBox();
     }
 
     private async void DoChecksAsync()
     {
-        var r = UpdateHelper.GetAllReleaseData();
+        var remoteVersionInfo = UpdateHelper.GetAllReleaseData();
         ClientExistsChecks(); //Doesn't need to wait for release data
 
-        await r; //Things after this are waiting for release data
+        await remoteVersionInfo; //Things after this are waiting for release data
         UpdateVersionStrings();
         CheckLauncherVersion();
+        ClientUpdateChecks();
+        HandleUpdates();
+    }
+    private void SetProfileSelectorComboBox(){
+        viewModel.Profiles = [CONSTANTS.EDIT_PROFILES, .. ProfileManager.GetProfileNames()];
     }
     private void CheckLauncherVersion()
     {
@@ -43,25 +59,44 @@ public partial class MainWindow : Window
         if (UpdateHelper.HaveData(ReleaseChannel.MAIN))
             viewModel.RemoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion().ToHumanReable());
     }
-
     private void ClientExistsChecks()
     {
         if (!ClientHelper.ExecutableExists())
         {
             viewModel.DangerNoticeString = "No client found, we need to download one!";
             viewModel.LocalVersionString = string.Format(CONSTANTS.LOCAL_VERSION_FORMAT, "N/A");
-            ///Do some sort of download manager with ReleaseChannel, then we can set the button to download what we need, client, launcher, fresh download, etc
+            clientStatus = ClientStatus.NO_LOCAL_CLIENT;
+            updatesAvailable.Enqueue(ReleaseChannel.MAIN);
         }
         else
         {
             viewModel.LocalVersionString = string.Format(CONSTANTS.LOCAL_VERSION_FORMAT, ClientHelper.LocalClientVersion.ToHumanReable());
             viewModel.PlayButtonEnabled = true;
+            clientStatus = ClientStatus.READY;
+        }
+    }
+    private void ClientUpdateChecks(){
+        if(clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client insalled already
+            if(UpdateHelper.HaveData(ReleaseChannel.MAIN)){
+                if(UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion() > ClientHelper.LocalClientVersion){
+                    updatesAvailable.Enqueue(ReleaseChannel.MAIN);
+                }
+            }
+    }
+    private void HandleUpdates(){
+        if(updatesAvailable.TryDequeue(out var updateType)){
+            switch(updateType){
+                case ReleaseChannel.MAIN:
+                    viewModel.UpdateButtonString = clientStatus == ClientStatus.NO_LOCAL_CLIENT ? CONSTANTS.NO_CLIENT_AVAILABLE : CONSTANTS.CLIENT_UPDATE_AVAILABLE;
+                    viewModel.ShowDownloadAvailableButton = true;
+                    ///Call this methos again after update is completed(download button clicked, etc)
+                    break;
+            }
         }
     }
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
     {
-        //Here for testing
-        viewModel.ShowDownloadAvailableButton ^= true;
+
     }
 
     public void DownloadButtonClicked(object sender, RoutedEventArgs args)
@@ -99,6 +134,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private string localLauncherVersionString = $"Launcher Version: {LauncherVersion.GetLauncherVersion().ToHumanReable()}";
     private string dangerNoticeString;
     private bool playButtonEnabled;
+    private string updateButtonString = string.Empty;
 
     public ObservableCollection<string> Profiles
     {
@@ -188,9 +224,18 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(PlayButtonEnabled));
         }
     }
+
+    public string UpdateButtonString
+    {
+        get => updateButtonString; set
+        {
+            updateButtonString = value;
+            OnPropertyChanged(nameof(UpdateButtonString));
+        }
+    }
     public MainWindowViewModel()
     {
-        Profiles = new ObservableCollection<string>() { "[ Edit Profiles ]", "IzaBum", "SleezKilla", "Sc4redOfPvp", "D0ntTellMyMom" };
+        Profiles = new ObservableCollection<string>() { CONSTANTS.EDIT_PROFILES };
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

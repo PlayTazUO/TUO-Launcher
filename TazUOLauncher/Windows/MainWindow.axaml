@@ -69,63 +69,75 @@
                 Play
             </Button>
 
+            <Panel Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Width="{Binding $parent.Bounds.Width}">
+                <Button x:Name="DownloadUpdateButton"
+                    Margin="0, 1, 0, 0"  
+                    IsVisible="{Binding ShowDownloadAvailableButton, DataType={x:Type vm:MainWindowViewModel}}" 
+                    HorizontalAlignment="Center" 
+                    MinHeight="60"
+                    MinWidth="100"
+                    Click="DownloadButtonClicked" 
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
+                        <Label Content="{Binding UpdateButtonString, DataType={x:Type vm:MainWindowViewModel}}"/>
+                        <LineBreak/>
+                        Download now</TextBlock>
+                </Button>
+            </Panel>
+
             <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar, DataType={x:Type vm:MainWindowViewModel}}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent, DataType={x:Type vm:MainWindowViewModel}}"/>
             <Label Margin="0, 1, 0, 0" IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" Canvas.Left="330" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}">Downloading an update..</Label>
 
-            <Button x:Name="DownloadUpdateButton" IsVisible="{Binding ShowDownloadAvailableButton, DataType={x:Type vm:MainWindowViewModel}}" Canvas.Bottom="65" Canvas.Left="325" Height="60" Width="150" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">Update available<LineBreak/>Download now</TextBlock>
+            <Grid Width="{Binding $parent.Bounds.Width}"
+                Canvas.Bottom="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <Label Name="RemoteVersionText" 
+                    Classes="Code"
+                    Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                    Grid.Column="0"
+                    HorizontalContentAlignment="Center"/>
+
+                <Label Name="LocalVersionText" 
+                    Classes="Code"
+                    Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                    Grid.Column="2"
+                    HorizontalContentAlignment="Center"/>
+
+                <Label Name="LauncherVersionText"
+                    Classes="Code"
+                    Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}"
+                    Grid.Column="4"
+                    HorizontalContentAlignment="Center"/>
+            </Grid>
+
+            <Button Name="ToolsLink"
+                Canvas.Right="5" Canvas.Top="5"
+                Classes="Small">
+                [ tools ]
             </Button>
-
-            <Rectangle Name="VersionRectangle" Width="220" Height="55" Canvas.Bottom="5" Canvas.Left="290" Fill="#BF202020" HorizontalAlignment="Left" Canvas.Top="390" VerticalAlignment="Center"></Rectangle>
-            <Label Name="RemoteVersionText" 
-                Classes="Warning"
-                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
-                Canvas.Top="{Binding #VersionRectangle.Bounds.Top}"
-                Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}"
-                HorizontalContentAlignment="Center" 
-                Width="{Binding #VersionRectangle.Bounds.Width}"/>
-
-            <Label Name="LocalVersionText" 
-                Classes="Warning"
-                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
-                Canvas.Top="{Binding #RemoteVersionText.Bounds.Bottom}"
-                Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}"
-                HorizontalContentAlignment="Center" 
-                Width="{Binding #VersionRectangle.Bounds.Width}"/>
-
-            <Label Name="LauncherVersionText"
-                Classes="Warning"
-                Canvas.Left="{Binding #VersionRectangle.Bounds.Left}" 
-                Canvas.Top="{Binding #LocalVersionText.Bounds.Bottom}" 
-                Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}"
-                HorizontalContentAlignment="Center" 
-                Width="{Binding #VersionRectangle.Bounds.Width}"/>
-
-                <Button Name="ToolsLink"
-                    Canvas.Right="5" Canvas.Top="5"
-                    Classes="Small">
-                    [ tools ]
-                </Button>
-                <Button Name="DiscordLink"
-                    Margin="0, 1, 0, 0"
-                    Canvas.Right="5" Canvas.Top="{Binding #ToolsLink.Bounds.Bottom}"
-                    Classes="Small" Click="OpenDiscordClicked">
-                    discord
-                </Button>
-                <Button Name="GithubLink"
-                    Margin="0, 1, 0, 0"
-                    Canvas.Right="5" Canvas.Top="{Binding #DiscordLink.Bounds.Bottom}"
-                    Classes="Small" Click="OpenGithubClicked">
-                    github
-                </Button>
-                <Button Canvas.Right="5" Canvas.Top="{Binding #GithubLink.Bounds.Bottom}"
-                    Margin="0, 1, 0, 0"
-                    Classes="Small" Click="OpenWikiClicked">
-                    wiki
-                </Button>
-
-
-            
-
+            <Button Name="DiscordLink"
+                Margin="0, 1, 0, 0"
+                Canvas.Right="5" Canvas.Top="{Binding #ToolsLink.Bounds.Bottom}"
+                Classes="Small" Click="OpenDiscordClicked">
+                discord
+            </Button>
+            <Button Name="GithubLink"
+                Margin="0, 1, 0, 0"
+                Canvas.Right="5" Canvas.Top="{Binding #DiscordLink.Bounds.Bottom}"
+                Classes="Small" Click="OpenGithubClicked">
+                github
+            </Button>
+            <Button Canvas.Right="5" Canvas.Top="{Binding #GithubLink.Bounds.Bottom}"
+                Margin="0, 1, 0, 0"
+                Classes="Small" Click="OpenWikiClicked">
+                wiki
+            </Button>
         </Canvas>
 </Window>

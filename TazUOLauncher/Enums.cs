@@ -5,3 +5,9 @@ public enum ReleaseChannel{
     DEV,
     LAUNCHER
 }
+
+public enum ClientStatus{
+    INITIALIZING,
+    NO_LOCAL_CLIENT,
+    READY
+}

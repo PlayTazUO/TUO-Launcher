@@ -10,4 +10,8 @@ internal static class CONSTANTS {
     public const string REMOTE_VERSION_FORMAT = "Remote Version: {0}";
     public const string LOCAL_VERSION_FORMAT = "Local Version: {0}";
     public const string CLIENT_DIRECTORY_NAME = "TazUO";
+    public const string CLIENT_UPDATE_AVAILABLE = "TazUO update available";
+    public const string LAUNCHER_UPDATE_AVAILABLE = "Launcher update available";
+    public const string NO_CLIENT_AVAILABLE = "No client found";
+    public const string EDIT_PROFILES = "[ Edit Profiles ]";
 }

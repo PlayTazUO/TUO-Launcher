@@ -123,18 +123,21 @@
 
                 <Label Name="RemoteVersionText" 
                     Classes="Code"
+                    Background="#D8202020"
                     Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}"
                     Grid.Column="0"
                     HorizontalContentAlignment="Center"/>
 
                 <Label Name="LocalVersionText" 
                     Classes="Code"
+                    Background="#D8202020"
                     Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}"
                     Grid.Column="2"
                     HorizontalContentAlignment="Center"/>
 
                 <Label Name="LauncherVersionText"
                     Classes="Code"
+                    Background="#D8202020"
                     Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}"
                     Grid.Column="4"
                     HorizontalContentAlignment="Center"/>

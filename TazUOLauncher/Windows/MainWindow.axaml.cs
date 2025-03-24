@@ -32,6 +32,8 @@ public partial class MainWindow : Window
         foreach (Profile p in ProfileManager.AllProfiles)
             p?.Save();
 
+        LauncherSettings.GetLauncherSaveFile.Save().ConfigureAwait(false);
+
         base.OnClosing(e);
     }
     private async void LoadProfiles()

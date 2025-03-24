@@ -46,6 +46,6 @@ internal class LauncherSettings
                 }
             });
         }
-        private LauncherSaveFile() { }
+        public LauncherSaveFile() { }
     }
 }

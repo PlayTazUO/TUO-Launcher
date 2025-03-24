@@ -35,9 +35,9 @@ internal static class ClientHelper
     }
     private static Version GetInstalledVersion()
     {
-        if (File.Exists(PathHelper.ClientExecutablePath()))
+        if (File.Exists(PathHelper.ClientExecutablePath(true)))
         {
-            return AssemblyName.GetAssemblyName(PathHelper.ClientExecutablePath()).Version ?? new Version(0, 0, 0, 0);
+            return AssemblyName.GetAssemblyName(PathHelper.ClientExecutablePath(true)).Version ?? new Version(0, 0, 0, 0);
         }
         return new Version(0, 0, 0, 0);
     }

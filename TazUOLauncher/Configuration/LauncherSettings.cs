@@ -12,7 +12,7 @@ internal class LauncherSettings
 
     internal class LauncherSaveFile
     {
-        public int LastSelectedProfileIndex { get; set; }
+        public string LastSelectedProfileName { get; set; } = string.Empty;
 
         public static LauncherSaveFile Get()
         {

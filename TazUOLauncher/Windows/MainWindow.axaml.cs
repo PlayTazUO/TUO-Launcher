@@ -55,6 +55,17 @@ public partial class MainWindow : Window
     private void SetProfileSelectorComboBox()
     {
         viewModel.Profiles = [CONSTANTS.EDIT_PROFILES, .. ProfileManager.GetProfileNames()];
+
+        int i = 0;
+        foreach (var s in viewModel.Profiles)
+        {
+            if (s == LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName)
+            {
+                ProfileSelector.SelectedIndex = i;
+                break;
+            }
+            i++;
+        }
     }
     private void CheckLauncherVersion()
     {
@@ -146,7 +157,8 @@ public partial class MainWindow : Window
             HandleUpdates();
         });
     }
-    private void OpenEditProfiles(){
+    private void OpenEditProfiles()
+    {
         viewModel.DangerNoticeString = "Tried to open profile editor, it's not set up yet.";
     }
 
@@ -173,10 +185,12 @@ public partial class MainWindow : Window
         {
             string si = (string)dd.SelectedItem;
             if (si != null && si != null)
-                ProfileManager.TryFindProfile(si, out selectedProfile);
+                if (ProfileManager.TryFindProfile(si, out selectedProfile) && selectedProfile != null)
+                    LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }
     }
-    public void EditProfilesClicked(object sender, RoutedEventArgs args){
+    public void EditProfilesClicked(object sender, RoutedEventArgs args)
+    {
         OpenEditProfiles();
     }
     public void OpenWikiClicked(object sender, RoutedEventArgs args)
@@ -205,7 +219,12 @@ public partial class MainWindow : Window
     }
     public void ImportCUOLauncherClick(object sender, RoutedEventArgs args)
     {
-
+        if (!Utility.TryImportCUOProfiles())
+        {
+            viewModel.DangerNoticeString = "Failed to import CUO profiles, or no profiles found.";
+            return;
+        }
+        LoadProfiles();
     }
     public void ToolsButtonClick(object sender, RoutedEventArgs args)
     {

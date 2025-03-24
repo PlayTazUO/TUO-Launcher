@@ -14,11 +14,11 @@ public static class PathHelper
 
     public static string ClientPath { get; set; } = Path.Combine(LauncherPath, CONSTANTS.CLIENT_DIRECTORY_NAME);
 
-    public static string ClientExecutablePath()
+    public static string ClientExecutablePath(bool returnExeOnly = false)
     {
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (returnExeOnly || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return Path.Combine(ClientPath, "ClassicUO.exe");
             }

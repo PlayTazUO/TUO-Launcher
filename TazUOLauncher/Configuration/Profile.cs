@@ -19,14 +19,14 @@ class Profile
     public string AdditionalArgs { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public Settings? CUOSettings
+    public Settings CUOSettings
     {
         get
         {
             if (_CUOSettings == null)
             {
                 LoadCUOSettings();
-                return _CUOSettings;
+                return _CUOSettings ?? new Settings();
             }
             else
             {
@@ -55,12 +55,12 @@ class Profile
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
-                CUOSettings = new Settings();
+                _CUOSettings = new Settings();
             }
         }
         else
         {
-            CUOSettings = new Settings();
+            _CUOSettings = new Settings();
         }
     }
 

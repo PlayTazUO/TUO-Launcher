@@ -24,8 +24,9 @@ public partial class ProfileEditorWindow : Window
 
         viewModel.Profiles = [.. ProfileManager.GetProfileNames()];
 
-        EntryAccountName.TextChanged += (s,e)=>{
-            if(!string.IsNullOrEmpty(EntryAccountName.Text))
+        EntryAccountName.TextChanged += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(EntryAccountName.Text))
                 EntrySavePass.IsChecked = true;
         };
     }
@@ -41,6 +42,10 @@ public partial class ProfileEditorWindow : Window
                 if (Directory.Exists(res))
                 {
                     EntryUODirectory.Text = res;
+                }
+                else
+                {
+                    Console.WriteLine($"Folder doesn't exist: {res}");
                 }
             });
         });

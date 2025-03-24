@@ -259,7 +259,12 @@ internal static class Utility
 
         if (folders.Count >= 1)
         {
+            Console.WriteLine($"User selected folder: {folders[0].Path.AbsolutePath}");
             return folders[0].Path.AbsolutePath;
+        }
+        else
+        {
+            Console.WriteLine("Looks like no folder was selected.");
         }
         return string.Empty;
     }
@@ -277,7 +282,12 @@ internal static class Utility
 
         if (files.Count >= 1)
         {
+            Console.WriteLine($"User selected folder: {files[0].Path.AbsolutePath}");
             return files[0].Path.AbsolutePath;
+        }
+        else
+        {
+            Console.WriteLine("Looks like no file was selected.");
         }
         return string.Empty;
     }

@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -21,6 +23,11 @@ public partial class ProfileEditorWindow : Window
         DataContext = viewModel = new ProfileEditorViewModel();
 
         viewModel.Profiles = [.. ProfileManager.GetProfileNames()];
+
+        EntryAccountName.TextChanged += (s,e)=>{
+            if(!string.IsNullOrEmpty(EntryAccountName.Text))
+                EntrySavePass.IsChecked = true;
+        };
     }
 
     public void LocateUOFolderClicked(object s, RoutedEventArgs args)
@@ -55,7 +62,11 @@ public partial class ProfileEditorWindow : Window
     }
     public void ProfileSelectionChanged(object s, SelectionChangedEventArgs args)
     {
-        if (s == null || s is not ListBox profileListBox || profileListBox.SelectedItem == null) return;
+        if (s == null || s is not ListBox profileListBox || profileListBox.SelectedItem == null)
+        {
+            viewModel.EditAreaEnabled = false;
+            return;
+        }
 
         if (profileListBox.SelectedItem is string si && si != null)
             if (ProfileManager.TryFindProfile(si, out selectedProfile) && selectedProfile != null)
@@ -111,7 +122,51 @@ public partial class ProfileEditorWindow : Window
             selectedProfile.LastCharacterName = EntryLastCharName.Text;
         if (EntryAdditionalArgs.Text != null)
             selectedProfile.AdditionalArgs = EntryAdditionalArgs.Text;
+
+        selectedProfile.Save();
+        viewModel.Profiles = [.. ProfileManager.GetProfileNames()]; //Update names in list
     }
+    public void NewProfileClicked(object s, RoutedEventArgs args)
+    {
+        Profile p = new Profile();
+        p.Save();
+
+        ProfileManager.AllProfiles = ProfileManager.AllProfiles.Append(p).ToArray();
+        viewModel.Profiles = [.. ProfileManager.GetProfileNames()];
+    }
+    public void DeleteProfileClicked(object s, RoutedEventArgs args)
+    {
+        if (selectedProfile == null) return;
+
+        ProfileManager.DeleteProfileFile(selectedProfile, true);
+        ProfileManager.GetAllProfiles().Wait();
+        viewModel.Profiles = [.. ProfileManager.GetProfileNames()];
+    }
+    public void CopyProfileClicked(object s, RoutedEventArgs args)
+    {
+        if (selectedProfile == null) return;
+        Profile p = new Profile();
+        p.Name = ProfileManager.EnsureUniqueName(selectedProfile.Name);
+        p.LastCharacterName = selectedProfile.LastCharacterName;
+        p.AdditionalArgs = selectedProfile.AdditionalArgs;
+
+        var settings = selectedProfile.CUOSettings.GetSaveData();
+        p.OverrideSettings(JsonSerializer.Deserialize<Settings>(settings) ?? new Settings());
+
+        p.Save();
+        ProfileManager.GetAllProfiles().Wait();
+        viewModel.Profiles = [.. ProfileManager.GetProfileNames()];
+    }
+    public void PluginRemoveClicked(object s, RoutedEventArgs args)
+    {
+        if (selectedProfile == null) return;
+
+        if (EntryPluginList.SelectedItem != null && EntryPluginList.SelectedItem is string selectedPlugin && viewModel.Plugins.Contains(selectedPlugin))
+        {
+            viewModel.Plugins.Remove(selectedPlugin);
+        }
+    }
+
     private void PopulateProfileInfo()
     {
         if (selectedProfile == null) return;
@@ -139,7 +194,6 @@ public partial class ProfileEditorWindow : Window
 
         selectedProfile.Save();
     }
-
 }
 
 public class ProfileEditorViewModel : INotifyPropertyChanged

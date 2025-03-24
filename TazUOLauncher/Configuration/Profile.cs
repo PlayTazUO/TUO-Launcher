@@ -7,12 +7,11 @@ namespace TazUOLauncher;
 
 class Profile
 {
-    [JsonIgnore]
     private Settings? _CUOSettings;
-
-    [JsonIgnore]
     public bool IsDeleted = false;
-    public string Name { get; set; } = "Blank Profile";
+    private string name = ProfileManager.EnsureUniqueName("Blank Profile");
+
+    public string Name { get => name; set { name = value; } }
     public string SettingsFile { get; set; } = Guid.NewGuid().ToString();
     public string FileName { get; set; } = Guid.NewGuid().ToString();
     public string LastCharacterName { get; set; } = string.Empty;
@@ -36,6 +35,11 @@ class Profile
         private set => _CUOSettings = value;
     }
 
+    public void OverrideSettings(Settings settings)
+    {
+        _CUOSettings = settings;
+    }
+    
     private void LoadCUOSettings()
     {
         if (File.Exists(GetSettingsFilePath()))

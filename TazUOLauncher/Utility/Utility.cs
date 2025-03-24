@@ -282,15 +282,3 @@ internal static class Utility
         return string.Empty;
     }
 }
-
-
-
-//         public static void OpenLauncherDownloadLink()
-//         {
-//             var destinationurl = "https://github.com/bittiez/TUO-Launcher/releases/latest";
-//             var sInfo = new System.Diagnostics.ProcessStartInfo(destinationurl)
-//             {
-//                 UseShellExecute = true,
-//             };
-//             System.Diagnostics.Process.Start(sInfo);
-//         }

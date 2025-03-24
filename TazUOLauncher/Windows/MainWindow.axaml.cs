@@ -86,7 +86,7 @@ public partial class MainWindow : Window
     {
         if (!ClientHelper.ExecutableExists())
         {
-            viewModel.DangerNoticeString = "No client found, we need to download one!";
+            viewModel.DangerNoticeString = "No installed client found!";
             viewModel.LocalVersionString = string.Format(CONSTANTS.LOCAL_VERSION_FORMAT, "N/A");
             clientStatus = ClientStatus.NO_LOCAL_CLIENT;
             updatesAvailable.Enqueue(ReleaseChannel.MAIN);

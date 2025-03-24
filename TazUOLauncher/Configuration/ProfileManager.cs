@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TazUOLauncher;
 
 namespace TazUOLauncher;
 
@@ -130,5 +128,17 @@ static class ProfileManager
             names.Add(p.Name);
         }
         return names.ToArray();
+    }
+    public static string EnsureUniqueName(string fName)
+    {
+        HashSet<string> existingNames = new HashSet<string>(GetProfileNames());
+        int it = 1;
+        string newName = fName;
+        while (existingNames.Contains(newName))
+        {
+            newName = fName + it;
+            it++;
+        }
+        return newName;
     }
 }

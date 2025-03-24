@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using TazUO_Launcher;
 
 namespace TazUOLauncher;
 
@@ -16,9 +13,8 @@ public partial class MainWindow : Window
     private ClientStatus clientStatus = ClientStatus.INITIALIZING;
     private Queue<ReleaseChannel> updatesAvailable = new Queue<ReleaseChannel>();
     private ReleaseChannel nextDownloadType = ReleaseChannel.INVALID;
-
+    private ProfileEditorWindow? profileWindow;
     private Profile? selectedProfile;
-
     public MainWindow()
     {
         InitializeComponent();
@@ -31,6 +27,8 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        profileWindow?.Close();
+
         foreach (Profile p in ProfileManager.AllProfiles)
             p?.Save();
 
@@ -159,7 +157,17 @@ public partial class MainWindow : Window
     }
     private void OpenEditProfiles()
     {
-        viewModel.DangerNoticeString = "Tried to open profile editor, it's not set up yet.";
+        if(profileWindow != null){
+            profileWindow.Show();
+            return;
+        }
+        profileWindow = new ProfileEditorWindow();
+        profileWindow.Show();
+        profileWindow.Closed += (s, e) =>
+        {
+            profileWindow = null;
+            LoadProfiles();
+        };
     }
 
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
@@ -180,11 +188,11 @@ public partial class MainWindow : Window
         if (dd.SelectedIndex == 0)
         { //Edit Profile
             OpenEditProfiles();
+            dd.SelectedIndex = -1;
         }
-        else if (dd.SelectedItem != null && dd.SelectedItem is string)
+        else if (dd.SelectedItem != null && dd.SelectedItem is string si)
         {
-            string si = (string)dd.SelectedItem;
-            if (si != null && si != null)
+            if (si != null)
                 if (ProfileManager.TryFindProfile(si, out selectedProfile) && selectedProfile != null)
                     LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }

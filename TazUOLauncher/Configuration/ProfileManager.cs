@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using TazUOLauncher;
 
-namespace TazUO_Launcher;
+namespace TazUOLauncher;
 
 static class ProfileManager
 {

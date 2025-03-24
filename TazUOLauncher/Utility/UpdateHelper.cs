@@ -6,8 +6,6 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Avalonia;
-using TazUO_Launcher.Utility;
 
 namespace TazUOLauncher;
 

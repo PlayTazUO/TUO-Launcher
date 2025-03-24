@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using TazUO_Launcher;
-using TazUO_Launcher.Utility;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 
 namespace TazUOLauncher;
 
@@ -245,56 +245,45 @@ internal static class Utility
 
         return false;
     }
+
+    public static async Task<string> OpenFolderDialog(Window parent, string title)
+    {
+        var topLevel = TopLevel.GetTopLevel(parent);
+        if (topLevel == null) return string.Empty;
+
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+        });
+
+        if (folders.Count >= 1)
+        {
+            return folders[0].Path.AbsolutePath;
+        }
+        return string.Empty;
+    }
+
+    public static async Task<string> OpenFileDialog(Window parent, string title)
+    {
+        var topLevel = TopLevel.GetTopLevel(parent);
+        if (topLevel == null) return string.Empty;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false
+        });
+
+        if (files.Count >= 1)
+        {
+            return files[0].Path.AbsolutePath;
+        }
+        return string.Empty;
+    }
 }
 
 
-
-// using System;
-// using System.IO;
-// using System.Xml;
-
-// namespace TazUO_Launcher.Utility
-// {
-//     class Utility
-//     {
-//         //public static Dispatcher UIDispatcher = Application.Current.Dispatcher;
-
-
-//         // public static string AskForFile(string intialDirectory, string fileFilter = "")
-//         // {
-//         //     OpenFileDialog openFileDialog = new OpenFileDialog
-//         //     {
-//         //         InitialDirectory = intialDirectory,
-//         //         CheckFileExists = true,
-//         //         CheckPathExists = true
-//         //     };
-//         //     if(!string.IsNullOrEmpty(fileFilter))
-//         //         openFileDialog.Filter = fileFilter;
-
-//         //     var result = openFileDialog.ShowDialog();
-//         //     if (result == true)
-//         //     {
-//         //         return openFileDialog.FileName;
-//         //     }
-//         //     else
-//         //     {
-//         //         return string.Empty;
-//         //     }
-//         // }
-
-//         // public static string AskForFolder()
-//         // {
-//         //     Ookii.Dialogs.Wpf.VistaFolderBrowserDialog folderBrowserDialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
-
-//         //     if (folderBrowserDialog.ShowDialog() == true)
-//         //     {
-//         //         return folderBrowserDialog.SelectedPath;
-//         //     }
-//         //     else
-//         //     {
-//         //         return string.Empty;
-//         //     }
-//         // }
 
 //         public static void OpenLauncherDownloadLink()
 //         {
@@ -305,43 +294,3 @@ internal static class Utility
 //             };
 //             System.Diagnostics.Process.Start(sInfo);
 //         }
-
-//         public static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
-//         {
-//             // Get the subdirectories for the specified directory.
-//             DirectoryInfo dir = new DirectoryInfo(sourceDirName);
-
-//             if (!dir.Exists)
-//             {
-//                 throw new DirectoryNotFoundException(
-//                     "Source directory does not exist or could not be found: "
-//                     + sourceDirName);
-//             }
-
-//             DirectoryInfo[] dirs = dir.GetDirectories();
-//             // If the destination directory doesn't exist, create it.
-//             if (!Directory.Exists(destDirName))
-//             {
-//                 Directory.CreateDirectory(destDirName);
-//             }
-
-//             // Get the files in the directory and copy them to the new location.
-//             FileInfo[] files = dir.GetFiles();
-//             foreach (FileInfo file in files)
-//             {
-//                 string temppath = Path.Combine(destDirName, file.Name);
-//                 file.CopyTo(temppath, true);
-//             }
-
-//             // If copying subdirectories, copy them and their contents to new location.
-//             if (copySubDirs)
-//             {
-//                 foreach (DirectoryInfo subdir in dirs)
-//                 {
-//                     string temppath = Path.Combine(destDirName, subdir.Name);
-//                     DirectoryCopy(subdir.FullName, temppath, copySubDirs);
-//                 }
-//             }
-//         }
-
-

@@ -259,8 +259,8 @@ internal static class Utility
 
         if (folders.Count >= 1)
         {
-            Console.WriteLine($"User selected folder: {folders[0].Path.AbsolutePath}");
-            return folders[0].Path.AbsolutePath;
+            Console.WriteLine($"User selected folder: {folders[0].Path.LocalPath}");
+            return folders[0].Path.LocalPath;
         }
         else
         {
@@ -282,8 +282,8 @@ internal static class Utility
 
         if (files.Count >= 1)
         {
-            Console.WriteLine($"User selected folder: {files[0].Path.AbsolutePath}");
-            return files[0].Path.AbsolutePath;
+            Console.WriteLine($"User selected folder: {files[0].Path.LocalPath}");
+            return files[0].Path.LocalPath;
         }
         else
         {

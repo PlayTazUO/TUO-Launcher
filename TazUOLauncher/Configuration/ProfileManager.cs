@@ -29,6 +29,11 @@ static class ProfileManager
                         if (loadedProfile != null)
                         {
                             list.Add(loadedProfile);
+                            if (loadedProfile.GetProfileFilePath() != profile)
+                            {
+                                File.Delete(profile); //Remove wrongly named files
+                                loadedProfile.Save();
+                            }
                         }
                     }
                     catch (Exception e)

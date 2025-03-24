@@ -7,11 +7,11 @@
         Width="800" Height="450" CanResize="False"
         x:DataType="vm:MainWindowViewModel"
         x:Class="TazUOLauncher.MainWindow"
-        Icon="resm:TazUOLauncher.Resources.taz2.ico?assembly=TazUOLauncher"
+        Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher"
         Title="TazUOLauncher">
         <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
             <Image 
-                Source="resm:TazUOLauncher.Resources.uo_bg.png?assembly=TazUOLauncher" 
+                Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" 
                 Stretch="Fill" 
                 Width="{Binding $parent.Bounds.Width}" 
                 Height="{Binding $parent.Bounds.Height}"
@@ -24,8 +24,31 @@
                             <GradientStop Color="Black" Offset="1.0" />
                         </RadialGradientBrush>
                     </Image.OpacityMask>
-                </Image>
+            </Image>
         
+            <Menu>
+                <MenuItem Classes="Small">
+                    <MenuItem.Header>
+                        <Image Source="resm:TazUOLauncher.Resources.bars.png?assembly=TazUOLauncher"
+                            Width="20" Height="20" Stretch="Fill"
+                            Opacity="0.55" />
+                    </MenuItem.Header>
+                    <MenuItem Header="Tools">
+                        <MenuItem Header="Download latest main build" Click="DownloadMainBuildClick"/>
+                        <MenuItem Header="Download latest dev build" Click="DownloadDevBuildClick"/>
+                        <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
+                    </MenuItem> 
+                    <Separator/>
+                    <MenuItem Header="Discord" Click="OpenDiscordClicked"/>
+                    <Separator/>
+                    <MenuItem Header="GitHub" Click="OpenGithubClicked"/>
+                    <Separator/>
+                    <MenuItem Header="Wiki" Click="OpenWikiClicked"/>
+                    <Separator/>
+                    <MenuItem Header="Edit Profiles" Click="EditProfilesClicked"/>
+                </MenuItem>
+            </Menu>
+
             <Label Classes="Danger" 
                 HorizontalContentAlignment="Center"
                 Width="{Binding $parent.Bounds.Width}" 
@@ -44,7 +67,7 @@
                     <DropShadowEffect/>
                 </Rectangle.Effect>
                 <Rectangle.Fill>
-                    <ImageBrush Source="resm:TazUOLauncher.Resources.taz2.png?assembly=TazUOLauncher"/>
+                    <ImageBrush Source="resm:TazUOLauncher.Resources.centerlogo.png?assembly=TazUOLauncher"/>
                 </Rectangle.Fill>
             </Rectangle>
 
@@ -116,36 +139,5 @@
                     Grid.Column="4"
                     HorizontalContentAlignment="Center"/>
             </Grid>
-
-            <Button Name="ToolsLink"
-                Canvas.Right="5" Canvas.Top="5"
-                Classes="Small"
-                Click="ToolsButtonClick">
-                    <Button.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Download latest main build" Click="DownloadMainBuildClick"/>
-                            <MenuItem Header="Download latest dev build" Click="DownloadDevBuildClick"/>
-                            <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                [ tools ]
-            </Button>
-            <Button Name="DiscordLink"
-                Margin="0, 1, 0, 0"
-                Canvas.Right="5" Canvas.Top="{Binding #ToolsLink.Bounds.Bottom}"
-                Classes="Small" Click="OpenDiscordClicked">
-                discord
-            </Button>
-            <Button Name="GithubLink"
-                Margin="0, 1, 0, 0"
-                Canvas.Right="5" Canvas.Top="{Binding #DiscordLink.Bounds.Bottom}"
-                Classes="Small" Click="OpenGithubClicked">
-                github
-            </Button>
-            <Button Canvas.Right="5" Canvas.Top="{Binding #GithubLink.Bounds.Bottom}"
-                Margin="0, 1, 0, 0"
-                Classes="Small" Click="OpenWikiClicked">
-                wiki
-            </Button>
         </Canvas>
 </Window>

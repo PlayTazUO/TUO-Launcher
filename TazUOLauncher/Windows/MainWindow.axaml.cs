@@ -141,10 +141,13 @@ public partial class MainWindow : Window
         UpdateHelper.DownloadAndInstallZip(nextDownloadType, prog, () =>
         {
             viewModel.ShowDownloadProgressBar = false;
-            ClientHelper.LocalClientVersion = null;
+            ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
             ClientExistsChecks();
             HandleUpdates();
         });
+    }
+    private void OpenEditProfiles(){
+        viewModel.DangerNoticeString = "Tried to open profile editor, it's not set up yet.";
     }
 
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
@@ -153,12 +156,10 @@ public partial class MainWindow : Window
         if (selectedProfile != null)
             Utility.LaunchClient(selectedProfile);
     }
-
     public void DownloadButtonClicked(object sender, RoutedEventArgs args)
     {
         DoNextDownload();
     }
-
     public void ProfileSelectionChanged(object sender, SelectionChangedEventArgs args)
     {
         var dd = ((ComboBox)sender);
@@ -166,7 +167,7 @@ public partial class MainWindow : Window
 
         if (dd.SelectedIndex == 0)
         { //Edit Profile
-
+            OpenEditProfiles();
         }
         else if (dd.SelectedItem != null && dd.SelectedItem is string)
         {
@@ -175,7 +176,9 @@ public partial class MainWindow : Window
                 ProfileManager.TryFindProfile(si, out selectedProfile);
         }
     }
-
+    public void EditProfilesClicked(object sender, RoutedEventArgs args){
+        OpenEditProfiles();
+    }
     public void OpenWikiClicked(object sender, RoutedEventArgs args)
     {
         WebLinks.OpenURLInBrowser(CONSTANTS.WIKI_URL);

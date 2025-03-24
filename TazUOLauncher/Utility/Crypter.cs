@@ -76,7 +76,7 @@ namespace TazUO_Launcher.Utility
                 return string.Empty;
             }
 
-            byte[] buff = null;
+            byte[] buff;
 
             if (source.Length > 2 && source[0] == '1' && (source[1] == '-' || source[1] == '+'))
             {

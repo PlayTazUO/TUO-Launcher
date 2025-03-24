@@ -1,38 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
-
-using System;
-using System.Buffers.Binary;
-using System.IO;
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 namespace TazUOLauncher;
 
@@ -76,81 +42,13 @@ public enum ClientVersion
     CV_705301 = (7 << 24) | (0 << 16) | (53 << 8) | 01,          // Alternate backpack skins
     CV_706000 = (7 << 24) | (0 << 16) | (60 << 8) | 0,
     CV_706400 = (7 << 24) | (0 << 16) | (64 << 8) | 0, // Endless Journey background
-    CV_70796 = (7 << 24) | (0 << 16) | (79 << 8) | 6   // Display houses content option
+    CV_70796 = (7 << 24) | (0 << 16) | (79 << 8) | 6,   // Display houses content option
+    CV_7010400 = (7 << 24) | (0 << 16) | (104 << 8) | 0,         // new file format
+
 }
 
 public static class ClientVersionHelper
 {
-    public static bool TryParseFromFile(string clientpath, out string version)
-    {
-        if (File.Exists(clientpath))
-        {
-            using (FileStream fs = new FileStream(clientpath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                byte[] buffer = new byte[fs.Length];
-
-                fs.Read(buffer, 0, (int)fs.Length);
-
-                // VS_VERSION_INFO (unicode)
-                Span<byte> vsVersionInfo = stackalloc byte[]
-                {
-                        0x56,
-                        0x00,
-                        0x53,
-                        0x00,
-                        0x5F,
-                        0x00,
-                        0x56,
-                        0x00,
-                        0x45,
-                        0x00,
-                        0x52,
-                        0x00,
-                        0x53,
-                        0x00,
-                        0x49,
-                        0x00,
-                        0x4F,
-                        0x00,
-                        0x4E,
-                        0x00,
-                        0x5F,
-                        0x00,
-                        0x49,
-                        0x00,
-                        0x4E,
-                        0x00,
-                        0x46,
-                        0x00,
-                        0x4F,
-                        0x00
-                    };
-
-
-                for (var i = 0; i < buffer.Length; i++)
-                {
-                    if (vsVersionInfo.SequenceEqual(buffer.AsSpan(i, 30)))
-                    {
-                        var offset = i + 42; // 30 + 12
-
-                        var minorPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset));
-                        var majorPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 2));
-                        var privatePart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 4));
-                        var buildPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 6));
-
-                        version = $"{majorPart}.{minorPart}.{buildPart}.{privatePart}";
-
-                        return true;
-                    }
-                }
-            }
-        }
-
-        version = null;
-
-        return false;
-    }
-
     public static bool IsClientVersionValid(string versionText, out ClientVersion version)
     {
         version = 0;

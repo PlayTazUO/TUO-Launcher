@@ -28,7 +28,7 @@ internal static class Utility
         return new Version(0, 0, 0);
     }
 
-    public static async Task DownloadAsync(this HttpClient client, string requestUri, Stream destination, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+    public static async Task DownloadAsync(this HttpClient client, string requestUri, Stream destination, IProgress<float> progress, CancellationToken cancellationToken = default)
     {
         // Get the http headers first to examine the content length
         using (var response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
@@ -55,7 +55,7 @@ internal static class Utility
         }
     }
 
-    public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, IProgress<long> progress = null, CancellationToken cancellationToken = default)
+    public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, IProgress<long> progress, CancellationToken cancellationToken = default)
     {
         if (source == null)
             throw new ArgumentNullException(nameof(source));

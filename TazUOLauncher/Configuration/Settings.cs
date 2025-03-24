@@ -39,7 +39,15 @@ namespace TazUOLauncher;
 
 [JsonSourceGenerationOptions(WriteIndented = true, GenerationMode = JsonSourceGenerationMode.Metadata)]
 [JsonSerializable(typeof(Settings), GenerationMode = JsonSourceGenerationMode.Metadata)]
-
+sealed partial class SettingsJsonContext : JsonSerializerContext
+{
+    public static SettingsJsonContext RealDefault { get; } = new SettingsJsonContext(
+        new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
+}
 internal sealed class Settings
 {
     [JsonPropertyName("username")] public string Username { get; set; } = string.Empty;
@@ -166,6 +174,8 @@ sealed class NullablePoint2Converter : JsonConverter<Point?>
     }
     public override void Write(Utf8JsonWriter writer, Point? value, JsonSerializerOptions options)
     {
+        if (value == null) return;
+
         writer.WriteStartObject();
         writer.WriteNumber("X", value.Value.X);
         writer.WriteNumber("Y", value.Value.Y);

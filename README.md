@@ -1,6 +1,7 @@
 # TUO-Launcher
 A launcher for TazUO  
-![image](https://github.com/user-attachments/assets/f255e541-d435-450a-aa8f-b390f45133bd)
+
+This branch is in progress, being rebuilt for cross platform support and improved code.
 
 
 

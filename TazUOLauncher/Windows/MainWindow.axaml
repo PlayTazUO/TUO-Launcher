@@ -1,0 +1,100 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:TazUOLauncher" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Width="800" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
+    <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
+        <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
+            <Image.OpacityMask>
+                <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" Radius="0.4">
+                    <GradientStop Color="Transparent" Offset="0.3" />
+                    <GradientStop Color="Black" Offset="0.8" />
+                </RadialGradientBrush>
+            </Image.OpacityMask>
+        </Image>
+
+        <Menu>
+            <MenuItem Classes="Small">
+                <MenuItem.Header>
+                    <Image Source="resm:TazUOLauncher.Resources.bars.png?assembly=TazUOLauncher" Width="20" Height="20" Stretch="Fill" Opacity="0.55" />
+                </MenuItem.Header>
+                <MenuItem Header="Tools">
+                    <MenuItem Header="Install latest main build" Click="DownloadMainBuildClick"/>
+                    <MenuItem Header="Install latest dev build" Click="DownloadDevBuildClick"/>
+                    <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Update channel">
+                    <MenuItem Header="Main Channel" GroupName="ChannelGroup" IsChecked="{Binding MainChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" Click="SetStableChannelClicked">
+                        <MenuItem.Icon>
+                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding MainChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Development Channel" GroupName="ChannelGroup" IsChecked="{Binding DevChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" Click="SetDevChannelClicked">
+                        <MenuItem.Icon>
+                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding DevChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Discord" Click="OpenDiscordClicked"/>
+                <Separator/>
+                <MenuItem Header="GitHub" Click="OpenGithubClicked"/>
+                <Separator/>
+                <MenuItem Header="Wiki" Click="OpenWikiClicked"/>
+                <Separator/>
+                <MenuItem Header="Edit Profiles" Click="EditProfilesClicked"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid Width="{Binding $parent.Bounds.Width}" IsVisible="{Binding DangerNoticeStringShowing, DataType={x:Type vm:MainWindowViewModel}}" Grid.ColumnDefinitions="*, Auto, *" Margin="0, 5, 0, 0">
+            <Label Classes="Warning" HorizontalContentAlignment="Center" Padding="4, 4, 4, 4" Grid.Column="1" Content="{Binding DangerNoticeString, DataType={x:Type vm:MainWindowViewModel}}" Background="#D8202020"/>
+            <Button Classes="" Theme="{DynamicResource SolidButton}" IsVisible="{Binding ShowLauncherUpdateButton, DataType={x:Type vm:MainWindowViewModel}}" Click="GoToLauncherDownload" Grid.Column="2">
+                    Download Launcher
+            </Button>
+        </Grid>
+
+        <Rectangle RadiusX="20" RadiusY="20" Width="200" Height="200" Canvas.Left="300" Canvas.Top="40" Opacity="0.55">
+            <Rectangle.Effect>
+                <DropShadowEffect/>
+            </Rectangle.Effect>
+            <Rectangle.Fill>
+                <ImageBrush Source="resm:TazUOLauncher.Resources.centerlogo.png?assembly=TazUOLauncher"/>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <ComboBox x:Name="ProfileSelector" PlaceholderText="Select a profile" Name="ProfileSelector" Canvas.Left="300" Canvas.Top="255" MaxWidth="200" Width="200" ItemsSource="{Binding Profiles, DataType={x:Type vm:MainWindowViewModel}}" SelectionChanged="ProfileSelectionChanged"/>
+
+        <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled, DataType={x:Type vm:MainWindowViewModel}}" Margin="0, 1, 0, 0" Width="200" Canvas.Left="300" Canvas.Top="{Binding #ProfileSelector.Bounds.Bottom}" Click="PlayButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                Play
+        </Button>
+
+        <Panel Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Width="{Binding $parent.Bounds.Width}">
+            <Button x:Name="DownloadUpdateButton" Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadAvailableButton, DataType={x:Type vm:MainWindowViewModel}}" HorizontalAlignment="Center" MinHeight="60" MinWidth="100" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
+                    <Label Content="{Binding UpdateButtonString, DataType={x:Type vm:MainWindowViewModel}}"/>
+                    <LineBreak/>
+                        Download now</TextBlock>
+            </Button>
+        </Panel>
+
+        <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar, DataType={x:Type vm:MainWindowViewModel}}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent, DataType={x:Type vm:MainWindowViewModel}}"/>
+        <Label Margin="0, 1, 0, 0" IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" Canvas.Left="330" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}">Downloading an update..</Label>
+
+        <Grid Width="{Binding $parent.Bounds.Width}" Canvas.Bottom="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="2*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="2*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <Label Name="RemoteVersionText" Classes="Code" Background="#D8202020" Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="0" HorizontalContentAlignment="Center"/>
+
+            <Label Name="LocalVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="2" HorizontalContentAlignment="Center"/>
+
+            <Label Name="LauncherVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="4" HorizontalContentAlignment="Center"/>
+        </Grid>
+    </Canvas>
+</Window>

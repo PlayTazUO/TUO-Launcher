@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:TazUOLauncher"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    Width="800" Height="450" CanResize="False"
+    x:DataType="vm:ProfileEditorViewModel"
+    x:Class="TazUOLauncher.ProfileEditorWindow"
+    Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher"
+    Title="Profile Editor">
+    <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
+        <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" 
+            Stretch="Fill" 
+            Width="{Binding $parent.Bounds.Width}" 
+            Height="{Binding $parent.Bounds.Height}"
+            Opacity="0.2"/>
+
+        <Grid RowDefinitions="Auto, *" Width="250" Height="{Binding $parent.Bounds.Height}" Canvas.Left="10">
+            <Grid Grid.Row="0" Margin="0, 10, 0, 0" ColumnDefinitions="*, *, *">
+                <Button Grid.Column="0" Click="NewProfileClicked">New</Button>
+                <Button Grid.Column="1" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}" Click="DeleteProfileClicked">Delete</Button>
+                <Button Grid.Column="2" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}" Click="CopyProfileClicked">Copy</Button>
+            </Grid>
+
+            <ListBox Grid.Row="1"
+                Margin="0, 5, 0, 5"
+                ItemsSource="{Binding Profiles, DataType={x:Type vm:ProfileEditorViewModel}}"
+                SelectionChanged="ProfileSelectionChanged"/>
+        </Grid>
+
+        <Canvas Width="510" Height="{Binding $parent.Bounds.Height}" Canvas.Right="5" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}">
+            <TabControl Width="500" Height="{Binding $parent.Bounds.Height}">
+                <TabItem Header="General">
+                    <Grid RowDefinitions="*,*,*,*,*,*,*" ColumnDefinitions="*,*,*,*">
+
+                        <Label Grid.Row="0" VerticalAlignment="Center">Profile Name</Label>
+                        <TextBox x:Name="EntryProfileName" ToolTip.Tip="This profile's name" Watermark="Profile name" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Margin="2,2,2,2" VerticalContentAlignment="Center" Padding="5"/>
+
+                        <Label Grid.Row="1" VerticalAlignment="Center">Account</Label>
+                        <TextBox x:Name="EntryAccountName" ToolTip.Tip="Account name" Watermark="Account name" Grid.Row="1" Grid.Column="1" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+                        <TextBox x:Name="EntryAccountPass" ToolTip.Tip="Password" Watermark="Password" Grid.Row="1" Grid.Column="2" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center" PasswordChar="*"/>
+
+                        <CheckBox x:Name="EntrySavePass" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Foreground="White">
+                            Save Account
+                        </CheckBox>
+
+                        <Label Grid.Row="3" VerticalAlignment="Center">Connection</Label>
+                        <TextBox x:Name="EntryServerIP" ToolTip.Tip="Server address, for example: 192.168.1.1" Watermark="127.0.0.1" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+                        <TextBox x:Name="EntryServerPort" ToolTip.Tip="Server port, usually 2593 or 5003" Watermark="2593" Grid.Row="3" Grid.Column="3" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+
+                        <Label Grid.Row="5" VerticalAlignment="Center">UO Directory</Label>
+                        <TextBox x:Name="EntryUODirectory" ToolTip.Tip="Where your servers client files are at. Usually where client.exe exists." Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+                        <Button Click="LocateUOFolderClicked" x:Name="LocateUOButton" Grid.Row="5" Grid.Column="3">Locate</Button>
+
+                        <Label Grid.Row="6" VerticalAlignment="Center">Client Version</Label>
+                        <TextBox x:Name="EntryClientVersion" ToolTip.Tip="The client version your server uses. Something similar to 7.0.99.1" Grid.Row="6" Grid.Column="1" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+                        <CheckBox x:Name="EntryEncrypedClient" ToolTip.Tip="Some servers use encryption, some do not. Playing official servers? Tick this" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3">
+                            Use Encryption
+                        </CheckBox>
+
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Plugins">
+                    <Grid RowDefinitions="Auto, *" ColumnDefinitions="*, *" Margin="0, 5, 0, 5">
+                        <Button Click="AddPluginClicked" Margin="5, 5, 5, 5">Add</Button>
+                        <Button Click="PluginRemoveClicked" Margin="5, 5, 5, 5" Grid.Column="1">Remove</Button>
+
+                        <ListBox x:Name="EntryPluginList" ItemsSource="{Binding Plugins, DataType={x:Type vm:ProfileEditorViewModel}}" Grid.Row="1" Grid.ColumnSpan="2"/>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Advanced">
+                    <Grid RowDefinitions="*,*,*,*,*" ColumnDefinitions="*, *, *, *" Margin="0, 5, 0, 5">
+                        <CheckBox x:Name="EntryAutoLogin" VerticalAlignment="Center" ToolTip.Tip="Automatically log into your character" Grid.ColumnSpan="2">Auto Login</CheckBox>
+
+                        <CheckBox x:Name="EntryReconnect" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2">Auto Reconnect</CheckBox>
+                        
+                        <NumericUpDown x:Name="EntryReconnectTime" ToolTip.Tip="Time to reconnect in milliseconds." Grid.Row="1" Grid.Column="2" Increment="50"/>
+
+                        <CheckBox x:Name="EntryLoginMusic" Grid.Row="2" VerticalAlignment="Center">Music</CheckBox>
+                        <Slider x:Name="EntryMusicVolume" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" VerticalAlignment="Center" Minimum="0" Maximum="100"/>
+
+                        <Label Grid.Row="3" VerticalAlignment="Center">Auto login to char</Label>
+                        <TextBox ToolTip.Tip="Character name to auto log in to." x:Name="EntryLastCharName" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+
+                        <Label Grid.Row="4" VerticalAlignment="Center">Additional Args</Label>
+                        <TextBox x:Name="EntryAdditionalArgs" ToolTip.Tip="Addition args to send to TUO, ex: '-fps 120 -packetlog'" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Canvas>
+        <Button Classes="Success" Click="SaveButtonClicked" Canvas.Right="5" Canvas.Bottom="5" IsVisible="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}">Save</Button>
+    </Canvas>
+</Window>

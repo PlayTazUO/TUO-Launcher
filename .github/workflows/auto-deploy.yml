@@ -37,7 +37,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-       os: [  windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+       os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
 
     steps:
     - uses: actions/checkout@v4
@@ -52,6 +52,7 @@ jobs:
         
     - name: Create tag
       continue-on-error: true
+      if: ${{ strategy.job-index == 0 }}
       run: |
         git tag v${{ env.VERSION }}
         git push origin v${{ env.VERSION }}
@@ -60,7 +61,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-  
+
     - name: Set Runtime Identifier
       id: rid
       run: |
@@ -85,7 +86,7 @@ jobs:
       shell: bash
 
     - name: Build
-      run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ env.RID }}" 
+      run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ env.RID }}"
 
     - name: Set executable permission (Linux/macOS)
       if: runner.os != 'Windows'
@@ -102,7 +103,6 @@ jobs:
     - name: Get last release commit
       shell: bash
       id: last_release
-      if: ${{ strategy.job-index == 0 }}
       run: |
         if git rev-parse --verify "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
           LAST_COMMIT=$(git rev-parse "${{ env.TAG_NAME }}")
@@ -116,7 +116,6 @@ jobs:
     - name: Generate release notes
       shell: bash
       id: release_notes
-      if: ${{ strategy.job-index == 0 }}
       run: |
         if [ -z "$LAST_COMMIT" ]; then
           echo "No previous release found. Listing 10 latest commits."
@@ -130,7 +129,6 @@ jobs:
 
     - name: Echo release notes
       shell: bash
-      if: ${{ strategy.job-index == 0 }}
       run: echo "${{ steps.release_notes.outputs.RELEASE_NOTES }}"
 
     - name: Remove old Release
@@ -164,6 +162,13 @@ jobs:
       if: ${{ strategy.job-index > 0 }}
       uses: ncipollo/release-action@v1
       with:
+        name: 'v${{ env.VERSION }}'
+        body: |
+          These are built automatically on the main branch. 
+          This is version v${{ env.VERSION }} 
+          
+          # Release notes
+          ${{ steps.release_notes.outputs.RELEASE_NOTES }}
         artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
         allowUpdates: true
         prerelease: false

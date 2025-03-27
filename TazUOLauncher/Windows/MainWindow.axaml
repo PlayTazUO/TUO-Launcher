@@ -6,7 +6,7 @@
     <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
         <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
             <Image.OpacityMask>
-                <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" Radius="0.4">
+                <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" RadiusX="40%" RadiusY="40%">
                     <GradientStop Color="Transparent" Offset="0.3" />
                     <GradientStop Color="Black" Offset="0.8" />
                 </RadialGradientBrush>

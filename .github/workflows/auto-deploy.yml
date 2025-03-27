@@ -69,8 +69,8 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        directory: ${{ env.OUTPUT_PATH }}/${{ matrix.rid }}
-        filename: ${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip
+        directory: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}"
+        filename: "${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
         exclusions: '*.zip'
 
     - name: Get last release commit

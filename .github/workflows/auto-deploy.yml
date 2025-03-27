@@ -120,7 +120,7 @@ jobs:
       if: ${{ strategy.job-index == 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
         name: 'v${{ env.VERSION }}'
         body: |
           These are built automatically on the main branch. 
@@ -138,7 +138,7 @@ jobs:
       if: ${{ strategy.job-index > 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
         allowUpdates: true
         prerelease: false
         replacesArtifacts: false

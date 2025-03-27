@@ -97,6 +97,13 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
 
+      - name: Create DMG (macOS only)
+        if: runner.os == 'macOS'
+        uses: QQxiaoming/create-dmg-action@v0.0.2
+        with:
+          srcdir: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
+          name: "${{ env.ZIP_NAME }}.${{ env.RID }}.dmg"
+
       - name: Create package
         uses: thedoctor0/zip-release@master
         with:
@@ -149,7 +156,7 @@ jobs:
         if: ${{ strategy.job-index == 0 }}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip,${{ env.OUTPUT_PATH }}/${{ env.RID }}/*.dmg"
           name: "v${{ env.VERSION }}"
           body: |
             These are built automatically on the main branch. 
@@ -174,7 +181,7 @@ jobs:
 
             # Release notes
             ${{ steps.release_notes.outputs.RELEASE_NOTES }}
-          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip,${{ env.OUTPUT_PATH }}/${{ env.RID }}/*.dmg"
           allowUpdates: true
           prerelease: false
           replacesArtifacts: false

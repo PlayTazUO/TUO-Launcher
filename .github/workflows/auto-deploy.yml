@@ -7,7 +7,12 @@ on:
       - "*.yml"
       - "*.md"
   workflow_dispatch:
-      
+    inputs:
+      branch:
+        description: "The branch to run the workflow on"
+        required: true
+        default: "main"
+
 concurrency:
   group: maindeploy
   cancel-in-progress: true
@@ -38,7 +43,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: 'main'
+        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
 
     - name: Extract Version
       shell: bash

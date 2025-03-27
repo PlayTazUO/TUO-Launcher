@@ -49,9 +49,9 @@ jobs:
         run: |
           export LC_ALL=C.UTF-8
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' '${{ env.PROJ }}')
+            VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' "${{ env.PROJ }}")
           else
-            VERSION=$(sed -n 's/.*<AssemblyVersion>\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p' '${{ env.PROJ }}')
+            VERSION=$(sed -nE 's/.*<AssemblyVersion>([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' "${{ env.PROJ }}")
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 

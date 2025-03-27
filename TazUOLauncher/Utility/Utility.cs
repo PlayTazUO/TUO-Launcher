@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -17,9 +18,13 @@ internal static class Utility
     {
         if (data != null && data.name != null)
         {
-            if (data.name.StartsWith('v'))
+            if (data.name.StartsWith('v'))            
+                data.name = data.name.Substring(1);            
+            else
             {
-                data.name = data.name.Substring(1);
+                var m = Regex.Match(data.name, @"v(\d+\.\d+\.\d+)");
+                if (m.Success)
+                    data.name = m.Groups[1].Value;
             }
 
             if (Version.TryParse(data.name, out var version))

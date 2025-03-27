@@ -13,6 +13,7 @@ internal class LauncherSettings
     internal class LauncherSaveFile
     {
         public string LastSelectedProfileName { get; set; } = string.Empty;
+        public ReleaseChannel DownloadChannel { get; set; } = ReleaseChannel.MAIN;
 
         public static LauncherSaveFile Get()
         {

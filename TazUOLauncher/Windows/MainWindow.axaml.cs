@@ -11,7 +11,6 @@ public partial class MainWindow : Window
 {
     private MainWindowViewModel viewModel;
     private ClientStatus clientStatus = ClientStatus.INITIALIZING;
-    private Queue<ReleaseChannel> updatesAvailable = new Queue<ReleaseChannel>();
     private ReleaseChannel nextDownloadType = ReleaseChannel.INVALID;
     private ProfileEditorWindow? profileWindow;
     private Profile? selectedProfile;
@@ -20,6 +19,9 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         DataContext = viewModel = new MainWindowViewModel();
+
+        viewModel.MainChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN;
+        viewModel.DevChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV;
 
         DoChecksAsync();
         LoadProfiles();
@@ -69,29 +71,27 @@ public partial class MainWindow : Window
     }
     private void CheckLauncherVersion()
     {
-        if (UpdateHelper.HaveData(ReleaseChannel.LAUNCHER))
+        if (!UpdateHelper.HaveData(ReleaseChannel.LAUNCHER)) return;
+
+        var data = UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER];
+        if (data.GetVersion() > LauncherVersion.GetLauncherVersion())
         {
-            var data = UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER];
-            if (data.GetVersion() > LauncherVersion.GetLauncherVersion())
-            {
-                //Update available, do something
-                viewModel.DangerNoticeString = $"A launcher update is available! For now they must be manually downloaded. {LauncherVersion.GetLauncherVersion().ToHumanReable()} -> {data.GetVersion().ToHumanReable()}";
-            }
+            viewModel.DangerNoticeString = $"A launcher update is available! ({LauncherVersion.GetLauncherVersion().ToHumanReable()} -> {data.GetVersion().ToHumanReable()})";
+            viewModel.ShowLauncherUpdateButton = true;
         }
     }
     private void UpdateVersionStrings()
     {
         if (UpdateHelper.HaveData(ReleaseChannel.MAIN))
-            viewModel.RemoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion().ToHumanReable());
+            viewModel.RemoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, UpdateHelper.ReleaseData[LauncherSettings.GetLauncherSaveFile.DownloadChannel].GetVersion().ToHumanReable());
     }
     private void ClientExistsChecks()
     {
         if (!ClientHelper.ExecutableExists())
         {
-            viewModel.DangerNoticeString = "No installed client found!";
             viewModel.LocalVersionString = string.Format(CONSTANTS.LOCAL_VERSION_FORMAT, "N/A");
             clientStatus = ClientStatus.NO_LOCAL_CLIENT;
-            updatesAvailable.Enqueue(ReleaseChannel.MAIN);
+            nextDownloadType = LauncherSettings.GetLauncherSaveFile.DownloadChannel;
         }
         else
         {
@@ -104,30 +104,23 @@ public partial class MainWindow : Window
     private void ClientUpdateChecks()
     {
         if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client insalled already
-            if (UpdateHelper.HaveData(ReleaseChannel.MAIN))
+            if (UpdateHelper.HaveData(LauncherSettings.GetLauncherSaveFile.DownloadChannel))
             {
-                if (UpdateHelper.ReleaseData[ReleaseChannel.MAIN].GetVersion() > ClientHelper.LocalClientVersion)
+                if (UpdateHelper.ReleaseData[LauncherSettings.GetLauncherSaveFile.DownloadChannel].GetVersion() > ClientHelper.LocalClientVersion)
                 {
-                    updatesAvailable.Enqueue(ReleaseChannel.MAIN);
+                    nextDownloadType = LauncherSettings.GetLauncherSaveFile.DownloadChannel;
                 }
             }
     }
     private void HandleUpdates()
     {
-        nextDownloadType = ReleaseChannel.INVALID;
-        if (updatesAvailable.TryDequeue(out var updateType))
+        if (nextDownloadType != ReleaseChannel.INVALID)
         {
-            switch (updateType)
+            switch (nextDownloadType)
             {
-                case ReleaseChannel.MAIN:
+                case ReleaseChannel.MAIN or ReleaseChannel.DEV:
                     viewModel.UpdateButtonString = clientStatus == ClientStatus.NO_LOCAL_CLIENT ? CONSTANTS.NO_CLIENT_AVAILABLE : CONSTANTS.CLIENT_UPDATE_AVAILABLE;
                     viewModel.ShowDownloadAvailableButton = true;
-                    nextDownloadType = ReleaseChannel.MAIN;
-                    break;
-                case ReleaseChannel.LAUNCHER:
-                    viewModel.UpdateButtonString = CONSTANTS.LAUNCHER_UPDATE_AVAILABLE;
-                    viewModel.ShowDownloadAvailableButton = true;
-                    nextDownloadType = ReleaseChannel.LAUNCHER;
                     break;
             }
         }
@@ -152,6 +145,7 @@ public partial class MainWindow : Window
         UpdateHelper.DownloadAndInstallZip(nextDownloadType, prog, () =>
         {
             viewModel.ShowDownloadProgressBar = false;
+            nextDownloadType = ReleaseChannel.INVALID;
             ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
             ClientExistsChecks();
             HandleUpdates();
@@ -159,7 +153,8 @@ public partial class MainWindow : Window
     }
     private void OpenEditProfiles()
     {
-        if(profileWindow != null){
+        if (profileWindow != null)
+        {
             profileWindow.Show();
             return;
         }
@@ -172,6 +167,28 @@ public partial class MainWindow : Window
         };
     }
 
+    public void SetStableChannelClicked(object sender, RoutedEventArgs args)
+    {
+        viewModel.MainChannelSelected = true;
+        viewModel.DevChannelSelected = false;
+        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.MAIN;
+        ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
+        ClientExistsChecks();
+        UpdateVersionStrings();
+        ClientUpdateChecks();
+        HandleUpdates();
+    }
+    public void SetDevChannelClicked(object sender, RoutedEventArgs args)
+    {
+        viewModel.DevChannelSelected = true;
+        viewModel.MainChannelSelected = false;
+        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.DEV;
+        ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
+        ClientExistsChecks();
+        UpdateVersionStrings();
+        ClientUpdateChecks();
+        HandleUpdates();
+    }
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
     {
         ClientHelper.TrySetPlusXUnix();
@@ -198,6 +215,13 @@ public partial class MainWindow : Window
                 if (ProfileManager.TryFindProfile(si, out selectedProfile) && selectedProfile != null)
                     LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }
+    }
+    public void GoToLauncherDownload(object sender, RoutedEventArgs args)
+    {
+        if (UpdateHelper.HaveData(ReleaseChannel.LAUNCHER))
+            WebLinks.OpenURLInBrowser(UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER].html_url ?? CONSTANTS.LAUNCHER_LATEST_URL);
+        else
+            WebLinks.OpenURLInBrowser(CONSTANTS.LAUNCHER_LATEST_URL);
     }
     public void EditProfilesClicked(object sender, RoutedEventArgs args)
     {
@@ -255,6 +279,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private string dangerNoticeString = string.Empty;
     private bool playButtonEnabled;
     private string updateButtonString = string.Empty;
+    private bool showLauncherUpdateButton;
+    private bool devChannelSelected;
+    private bool mainChannelSelected;
+    private bool dangerNoticeStringShowing;
 
     public ObservableCollection<string> Profiles
     {
@@ -265,7 +293,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(Profiles));
         }
     }
-
     public bool ShowDownloadProgressBar
     {
         get => showDownloadProgressBar;
@@ -275,7 +302,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(ShowDownloadProgressBar));
         }
     }
-
     public int DownloadProgressBarPercent
     {
         get => downloadProgressBarPercent;
@@ -289,7 +315,22 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(DownloadProgressBarPercent));
         }
     }
-
+    public bool DevChannelSelected
+    {
+        get => devChannelSelected; set
+        {
+            devChannelSelected = value;
+            OnPropertyChanged(nameof(DevChannelSelected));
+        }
+    }
+    public bool MainChannelSelected
+    {
+        get => mainChannelSelected; set
+        {
+            mainChannelSelected = value;
+            OnPropertyChanged(nameof(MainChannelSelected));
+        }
+    }
     public bool ShowDownloadAvailableButton
     {
         get => showDownloadAvailableButton;
@@ -299,7 +340,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(ShowDownloadAvailableButton));
         }
     }
-
     public string RemoteVersionString
     {
         get => remoteVersionString; set
@@ -308,7 +348,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(RemoteVersionString));
         }
     }
-
     public string LocalVersionString
     {
         get => localVersionString; set
@@ -317,7 +356,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(LocalVersionString));
         }
     }
-
     public string LocalLauncherVersionString
     {
         get => localLauncherVersionString; set
@@ -326,16 +364,23 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(LocalLauncherVersionString));
         }
     }
-
     public string DangerNoticeString
     {
         get => dangerNoticeString; set
         {
             dangerNoticeString = value;
+            DangerNoticeStringShowing = !string.IsNullOrEmpty(value);
             OnPropertyChanged(nameof(DangerNoticeString));
         }
     }
-
+    public bool DangerNoticeStringShowing
+    {
+        get => dangerNoticeStringShowing; set
+        {
+            dangerNoticeStringShowing = value;
+            OnPropertyChanged(nameof(DangerNoticeStringShowing));
+        }
+    }
     public bool PlayButtonEnabled
     {
         get => playButtonEnabled; set
@@ -344,13 +389,20 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(PlayButtonEnabled));
         }
     }
-
     public string UpdateButtonString
     {
         get => updateButtonString; set
         {
             updateButtonString = value;
             OnPropertyChanged(nameof(UpdateButtonString));
+        }
+    }
+    public bool ShowLauncherUpdateButton
+    {
+        get => showLauncherUpdateButton; set
+        {
+            showLauncherUpdateButton = value;
+            OnPropertyChanged(nameof(ShowLauncherUpdateButton));
         }
     }
     public MainWindowViewModel()

@@ -20,7 +20,7 @@ concurrency:
 env:
   OUTPUT_PATH: '../../bin/dist'
   PROJ: "TazUOLauncher/TazUOLauncher.csproj"
-  ZIP_NAME: "TazUO.Launcher.zip"
+  ZIP_NAME: "TazUO Launcher"
   TAG_NAME: "TazUO-Launcher"
 
   DOTNET_NOLOGO: false
@@ -38,7 +38,7 @@ jobs:
       max-parallel: 1
       matrix:
        os: [  windows-latest  ]
-       rid: [win-x64, win-arm64, linux-x64, osx-x64, osx-arm64]
+       rid: [win-x64, osx-arm64, win-arm64, linux-x64, osx-x64]
 
     steps:
     - uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
       with:
         type: 'zip'
         directory: ${{ env.OUTPUT_PATH }}/${{ matrix.rid }}
-        filename: ${{ matrix.rid }}${{ env.ZIP_NAME }}
+        filename: ${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip
         exclusions: '*.zip'
 
     - name: Get last release commit
@@ -120,7 +120,7 @@ jobs:
       if: ${{ strategy.job-index == 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
         name: 'v${{ env.VERSION }}'
         body: |
           These are built automatically on the main branch. 
@@ -138,7 +138,7 @@ jobs:
       if: ${{ strategy.job-index > 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ matrix.rid }}${{ env.ZIP_NAME }}"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
         allowUpdates: true
         prerelease: false
         replacesArtifacts: false

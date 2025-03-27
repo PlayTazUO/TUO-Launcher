@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OUTPUT_PATH: '../../bin/dist'
+  OUTPUT_PATH: "../../bin/dist"
   PROJ: "TazUOLauncher/TazUOLauncher.csproj"
   ZIP_NAME: "TazUO-Launcher"
   TAG_NAME: "TazUO-Launcher"
@@ -37,143 +37,141 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-       os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
 
-    - name: Extract Version
-      shell: bash
-      run: |
-        export LC_ALL=C.UTF-8
-        echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' '${{ env.PROJ }}')" >> $GITHUB_ENV
-        
-    - name: Create tag
-      continue-on-error: true
-      if: ${{ strategy.job-index == 0 }}
-      run: |
-        git tag v${{ env.VERSION }}
-        git push origin v${{ env.VERSION }}
-        
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+      - name: Extract Version
+        shell: bash
+        run: |
+          export LC_ALL=C.UTF-8
+          echo "VERSION=$(grep -oP '<AssemblyVersion>\K\d+\.\d+\.\d+' '${{ env.PROJ }}')" >> $GITHUB_ENV
 
-    - name: Set Runtime Identifier
-      id: rid
-      run: |
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          OS="win"
-        elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          OS="osx"
-        else
-          OS="linux"
-        fi
+      - name: Create tag
+        continue-on-error: true
+        if: ${{ strategy.job-index == 0 }}
+        run: |
+          git tag v${{ env.VERSION }}
+          git push origin v${{ env.VERSION }}
 
-        if [[ "$RUNNER_ARCH" == "X64" ]]; then
-          ARCH="x64"
-        elif [[ "$RUNNER_ARCH" == "ARM64" ]]; then
-          ARCH="arm64"
-        else
-          echo "Unsupported architecture: $RUNNER_ARCH" >&2
-          exit 1
-        fi
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-        echo "RID=${OS}-${ARCH}" >> $GITHUB_ENV
-      shell: bash
+      - name: Set Runtime Identifier
+        id: rid
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            OS="win"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            OS="osx"
+          else
+            OS="linux"
+          fi
 
-    - name: Build
-      run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ env.RID }}"
+          if [[ "$RUNNER_ARCH" == "X64" ]]; then
+            ARCH="x64"
+          elif [[ "$RUNNER_ARCH" == "ARM64" ]]; then
+            ARCH="arm64"
+          else
+            echo "Unsupported architecture: $RUNNER_ARCH" >&2
+            exit 1
+          fi
 
-    - name: Set executable permission (Linux/macOS)
-      if: runner.os != 'Windows'
-      run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
+          echo "RID=${OS}-${ARCH}" >> $GITHUB_ENV
+        shell: bash
 
-    - name: Create package
-      uses: thedoctor0/zip-release@master
-      with:
-        type: 'zip'
-        directory: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
-        filename: "${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
-        exclusions: '*.zip'
+      - name: Build
+        run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ env.RID }}"
 
-    - name: Get last release commit
-      shell: bash
-      id: last_release
-      run: |
-        if git rev-parse --verify "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
-          LAST_COMMIT=$(git rev-parse "${{ env.TAG_NAME }}")
-          echo "LAST_COMMIT=$LAST_COMMIT" >> $GITHUB_ENV
-          echo "Last release commit: $LAST_COMMIT"
-        else
-          echo "No previous release found."
-          echo "LAST_COMMIT=" >> $GITHUB_ENV
-        fi
+      - name: Set executable permission (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
 
-    - name: Generate release notes
-      shell: bash
-      id: release_notes
-      run: |
-        if [ -z "$LAST_COMMIT" ]; then
-          echo "No previous release found. Listing 10 latest commits."
-          RELEASE_NOTES=$(git log -10 --pretty=format:"- %s")
-        else
-          echo "Generating release notes from commit $LAST_COMMIT to HEAD."
-          RELEASE_NOTES=$(git log ${LAST_COMMIT}..HEAD --pretty=format:"- %s")
-        fi
-    
-        printf "RELEASE_NOTES<<EOF\n%s\nEOF\n" "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+      - name: Create package
+        uses: thedoctor0/zip-release@master
+        with:
+          type: "zip"
+          directory: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
+          filename: "${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
+          exclusions: "*.zip"
 
-    - name: Echo release notes
-      shell: bash
-      run: echo "${{ steps.release_notes.outputs.RELEASE_NOTES }}"
+      - name: Get last release commit
+        shell: bash
+        id: last_release
+        run: |
+          if git rev-parse --verify "${{ env.TAG_NAME }}" >/dev/null 2>&1; then
+            LAST_COMMIT=$(git rev-parse "${{ env.TAG_NAME }}")
+            echo "LAST_COMMIT=$LAST_COMMIT" >> $GITHUB_ENV
+            echo "Last release commit: $LAST_COMMIT"
+          else
+            echo "No previous release found."
+            echo "LAST_COMMIT=" >> $GITHUB_ENV
+          fi
 
-    - name: Remove old Release
-      uses: dev-drprasad/delete-tag-and-release@v0.2.1
-      if: ${{ strategy.job-index == 0 }}
-      with:
-        delete_release: true
-        tag_name: ${{ env.TAG_NAME }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Upload Release
-      if: ${{ strategy.job-index == 0 }}
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
-        name: 'v${{ env.VERSION }}'
-        body: |
-          These are built automatically on the main branch. 
-          This is version v${{ env.VERSION }} 
-          
-          # Release notes
-          ${{ steps.release_notes.outputs.RELEASE_NOTES }}
-        makeLatest: true
-        allowUpdates: true
-        prerelease: false
-        tag: ${{ env.TAG_NAME }}
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate release notes
+        shell: bash
+        id: release_notes
+        run: |
+          if [ -z "$LAST_COMMIT" ]; then
+            echo "No previous release found. Listing 10 latest commits."
+            RELEASE_NOTES=$(git log -10 --pretty=format:"- %s")
+          else
+            echo "Generating release notes from commit $LAST_COMMIT to HEAD."
+            RELEASE_NOTES=$(git log ${LAST_COMMIT}..HEAD --pretty=format:"- %s")
+          fi
 
-    - name: Add to Release
-      if: ${{ strategy.job-index > 0 }}
-      uses: ncipollo/release-action@v1
-      with:
-        name: 'v${{ env.VERSION }}'
-        body: |
-          These are built automatically on the main branch. 
-          This is version v${{ env.VERSION }} 
-          
-          # Release notes
-          ${{ steps.release_notes.outputs.RELEASE_NOTES }}
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
-        allowUpdates: true
-        prerelease: false
-        replacesArtifacts: false
-        tag: ${{ env.TAG_NAME }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
-        
+          printf "RELEASE_NOTES<<EOF\n%s\nEOF\n" "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+
+      - name: Echo release notes
+        shell: bash
+        run: echo "${{ steps.release_notes.outputs.RELEASE_NOTES }}"
+
+      - name: Remove old Release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+        if: ${{ strategy.job-index == 0 }}
+        with:
+          delete_release: true
+          tag_name: ${{ env.TAG_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release
+        if: ${{ strategy.job-index == 0 }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
+          name: "v${{ env.VERSION }}"
+          body: |
+            These are built automatically on the main branch. 
+            This is version v${{ env.VERSION }} 
+
+            # Release notes
+            ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+          makeLatest: true
+          allowUpdates: true
+          prerelease: false
+          tag: ${{ env.TAG_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add to Release
+        if: ${{ strategy.job-index > 0 }}
+        uses: ncipollo/release-action@v1
+        with:
+          name: "v${{ env.VERSION }}"
+          body: |
+            These are built automatically on the main branch. 
+            This is version v${{ env.VERSION }} 
+
+            # Release notes
+            ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
+          allowUpdates: true
+          prerelease: false
+          replacesArtifacts: false
+          tag: ${{ env.TAG_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}

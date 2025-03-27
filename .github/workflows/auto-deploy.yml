@@ -20,7 +20,7 @@ concurrency:
 env:
   OUTPUT_PATH: '../../bin/dist'
   PROJ: "TazUOLauncher/TazUOLauncher.csproj"
-  ZIP_NAME: "TazUO Launcher"
+  ZIP_NAME: "TazUO-Launcher"
   TAG_NAME: "TazUO-Launcher"
 
   DOTNET_NOLOGO: false

@@ -37,8 +37,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-       os: [  windows-latest  ]
-       rid: [win-x64, osx-arm64, win-arm64, linux-x64, osx-x64]
+       os: [  windows-latest, ubuntu-latest, macos-latest, macos-13 ]
 
     steps:
     - uses: actions/checkout@v4
@@ -61,16 +60,43 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-            
+  
+    - name: Set Runtime Identifier
+      id: rid
+      run: |
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          OS="win"
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          OS="osx"
+        else
+          OS="linux"
+        fi
+
+        if [[ "$RUNNER_ARCH" == "X64" ]]; then
+          ARCH="x64"
+        elif [[ "$RUNNER_ARCH" == "ARM64" ]]; then
+          ARCH="arm64"
+        else
+          echo "Unsupported architecture: $RUNNER_ARCH" >&2
+          exit 1
+        fi
+
+        echo "RID=${OS}-${ARCH}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Build
-      run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ matrix.rid }} -r ${{ matrix.rid }}" 
-      
+      run: "dotnet publish '${{ env.PROJ }}' -c Release -o ${{ env.OUTPUT_PATH }}/${{ env.RID }}" 
+
+    - name: Set executable permission (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
+
     - name: Create package
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        directory: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}"
-        filename: "${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
+        directory: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
+        filename: "${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
         exclusions: '*.zip'
 
     - name: Get last release commit
@@ -120,7 +146,7 @@ jobs:
       if: ${{ strategy.job-index == 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
         name: 'v${{ env.VERSION }}'
         body: |
           These are built automatically on the main branch. 
@@ -138,7 +164,7 @@ jobs:
       if: ${{ strategy.job-index > 0 }}
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "${{ env.OUTPUT_PATH }}/${{ matrix.rid }}/${{ env.ZIP_NAME }}.${{ matrix.rid }}.zip"
+        artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
         allowUpdates: true
         prerelease: false
         replacesArtifacts: false

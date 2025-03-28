@@ -76,6 +76,7 @@ public partial class ProfileEditorWindow : Window
         if (profileListBox.SelectedItem is string si && si != null)
             if (ProfileManager.TryFindProfile(si, out selectedProfile) && selectedProfile != null)
             {
+                selectedProfile.ReloadFromFile(); //In case of changes to file, or user didn't save
                 PopulateProfileInfo();
                 viewModel.EditAreaEnabled = true;
             }

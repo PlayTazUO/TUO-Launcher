@@ -127,6 +127,7 @@ static class ProfileManager
         {
             names.Add(p.Name);
         }
+        names.Sort(StringComparer.OrdinalIgnoreCase);
         return names.ToArray();
     }
     public static string EnsureUniqueName(string fName)

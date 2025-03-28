@@ -39,7 +39,7 @@ class Profile
     {
         _CUOSettings = settings;
     }
-    
+
     private void LoadCUOSettings()
     {
         if (File.Exists(GetSettingsFilePath()))
@@ -90,6 +90,17 @@ class Profile
         }
     }
 
+    public void ReloadFromFile()
+    {
+        LoadCUOSettings();
+        var loadedProfile = JsonSerializer.Deserialize<Profile>(File.ReadAllText(GetProfileFilePath()));
+        if (loadedProfile != null)
+        {
+            Name = loadedProfile.Name;
+            LastCharacterName = loadedProfile.LastCharacterName;
+            AdditionalArgs = loadedProfile.AdditionalArgs;
+        }
+    }
     public string GetSettingsFilePath()
     {
         return Path.Combine(PathHelper.SettingsPath, SettingsFile + ".json");

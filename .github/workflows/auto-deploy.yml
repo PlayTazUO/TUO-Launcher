@@ -106,7 +106,7 @@ jobs:
       - name: Create DMG (macOS only)
         continue-on-error: true
         if: runner.os == 'macOS'
-        uses: QQxiaoming/create-dmg-action@v0.0.2
+        uses: bittiez/create-dmg-action@v1.0.0
         with:
           srcdir: "${{ env.OUTPUT_PATH }}/dmg"
           name: "${{ env.ZIP_NAME }}.${{ env.RID }}"

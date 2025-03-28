@@ -97,11 +97,17 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
 
+      - name: Prepare DMG contents (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p "${{ env.OUTPUT_PATH }}/dmg/TazUOLauncher"
+          cp -R "${{ env.OUTPUT_PATH }}/${{ env.RID }}/"* "${{ env.OUTPUT_PATH }}/dmg/TazUOLauncher/"
+
       - name: Create DMG (macOS only)
         if: runner.os == 'macOS'
-        uses: QQxiaoming/create-dmg-action@v0.0.2
+        uses: lethja/create-dmg-action@v0.0.2
         with:
-          srcdir: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
+          srcdir: "${{ env.OUTPUT_PATH }}/dmg"
           name: "${{ env.ZIP_NAME }}.${{ env.RID }}"
 
       - name: Create package

@@ -97,28 +97,6 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ${{ env.OUTPUT_PATH }}/${{ env.RID }}/*
 
-      - name: Prepare DMG contents (macOS only)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p "${{ env.OUTPUT_PATH }}/dmg/TazUOLauncher"
-          cp -R "${{ env.OUTPUT_PATH }}/${{ env.RID }}/"* "${{ env.OUTPUT_PATH }}/dmg/TazUOLauncher/"
-
-      - name: Create DMG (macOS only)
-        continue-on-error: true
-        if: runner.os == 'macOS'
-        uses: bittiez/create-dmg-action@v1.0.1
-        with:
-          srcdir: "${{ env.OUTPUT_PATH }}/dmg"
-          name: "${{ env.ZIP_NAME }}.${{ env.RID }}"
-
-      - name: Create package
-        uses: thedoctor0/zip-release@master
-        with:
-          type: "zip"
-          directory: "${{ env.OUTPUT_PATH }}/${{ env.RID }}"
-          filename: "${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
-          exclusions: "*.zip"
-
       - name: Get last release commit
         shell: bash
         id: last_release
@@ -163,7 +141,7 @@ jobs:
         if: ${{ strategy.job-index == 0 }}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip,${{ env.ZIP_NAME }}.${{ env.RID }}.dmg"
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
           name: "v${{ env.VERSION }}"
           body: |
             These are built automatically on the main branch. 
@@ -188,7 +166,7 @@ jobs:
 
             # Release notes
             ${{ steps.release_notes.outputs.RELEASE_NOTES }}
-          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip,${{ env.ZIP_NAME }}.${{ env.RID }}.dmg"
+          artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
           allowUpdates: true
           prerelease: false
           replacesArtifacts: false

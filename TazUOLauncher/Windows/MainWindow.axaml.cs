@@ -31,9 +31,6 @@ public partial class MainWindow : Window
     {
         profileWindow?.Close();
 
-        foreach (Profile p in ProfileManager.AllProfiles)
-            p?.Save();
-
         LauncherSettings.GetLauncherSaveFile.Save().ConfigureAwait(false);
 
         base.OnClosing(e);

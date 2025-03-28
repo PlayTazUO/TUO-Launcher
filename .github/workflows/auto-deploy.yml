@@ -104,8 +104,9 @@ jobs:
           cp -R "${{ env.OUTPUT_PATH }}/${{ env.RID }}/"* "${{ env.OUTPUT_PATH }}/dmg/TazUOLauncher/"
 
       - name: Create DMG (macOS only)
+        continue-on-error: true
         if: runner.os == 'macOS'
-        uses: lethja/create-dmg-action@v0.0.2
+        uses: QQxiaoming/create-dmg-action@v0.0.2
         with:
           srcdir: "${{ env.OUTPUT_PATH }}/dmg"
           name: "${{ env.ZIP_NAME }}.${{ env.RID }}"

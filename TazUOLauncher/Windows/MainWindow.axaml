@@ -25,14 +25,14 @@
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="Update channel">
-                    <MenuItem Header="Main Channel" GroupName="ChannelGroup" IsChecked="{Binding MainChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" Click="SetStableChannelClicked">
+                    <MenuItem Header="Main Channel" GroupName="ChannelGroup" IsChecked="{Binding MainChannelSelected}" Click="SetStableChannelClicked">
                         <MenuItem.Icon>
-                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding MainChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" />
+                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding MainChannelSelected}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Development Channel" GroupName="ChannelGroup" IsChecked="{Binding DevChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" Click="SetDevChannelClicked">
+                    <MenuItem Header="Development Channel" GroupName="ChannelGroup" IsChecked="{Binding DevChannelSelected}" Click="SetDevChannelClicked">
                         <MenuItem.Icon>
-                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding DevChannelSelected, DataType={x:Type vm:MainWindowViewModel}}" />
+                        <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding DevChannelSelected}" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -47,9 +47,9 @@
             </MenuItem>
         </Menu>
 
-        <Grid Width="{Binding $parent.Bounds.Width}" IsVisible="{Binding DangerNoticeStringShowing, DataType={x:Type vm:MainWindowViewModel}}" Grid.ColumnDefinitions="*, Auto, *" Margin="0, 5, 0, 0">
-            <Label Classes="Warning" HorizontalContentAlignment="Center" Padding="4, 4, 4, 4" Grid.Column="1" Content="{Binding DangerNoticeString, DataType={x:Type vm:MainWindowViewModel}}" Background="#D8202020"/>
-            <Button Classes="" Theme="{DynamicResource SolidButton}" IsVisible="{Binding ShowLauncherUpdateButton, DataType={x:Type vm:MainWindowViewModel}}" Click="GoToLauncherDownload" Grid.Column="2">
+        <Grid Width="{Binding $parent.Bounds.Width}" IsVisible="{Binding DangerNoticeStringShowing}" Grid.ColumnDefinitions="*, Auto, *" Margin="0, 5, 0, 0">
+            <Label Classes="Warning" HorizontalContentAlignment="Center" Padding="4, 4, 4, 4" Grid.Column="1" Content="{Binding DangerNoticeString}" Background="#D8202020"/>
+            <Button Classes="" Theme="{DynamicResource SolidButton}" IsVisible="{Binding ShowLauncherUpdateButton}" Click="GoToLauncherDownload" Grid.Column="2">
                     Download Launcher
             </Button>
         </Grid>
@@ -63,22 +63,22 @@
             </Rectangle.Fill>
         </Rectangle>
 
-        <ComboBox x:Name="ProfileSelector" PlaceholderText="Select a profile" Name="ProfileSelector" Canvas.Left="300" Canvas.Top="255" MaxWidth="200" Width="200" ItemsSource="{Binding Profiles, DataType={x:Type vm:MainWindowViewModel}}" SelectionChanged="ProfileSelectionChanged"/>
+        <ComboBox x:Name="ProfileSelector" PlaceholderText="Select a profile" Name="ProfileSelector" Canvas.Left="300" Canvas.Top="255" MaxWidth="200" Width="200" ItemsSource="{Binding Profiles}" SelectionChanged="ProfileSelectionChanged"/>
 
-        <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled, DataType={x:Type vm:MainWindowViewModel}}" Margin="0, 1, 0, 0" Width="200" Canvas.Left="300" Canvas.Top="{Binding #ProfileSelector.Bounds.Bottom}" Click="PlayButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled}" Margin="0, 1, 0, 0" Width="200" Canvas.Left="300" Canvas.Top="{Binding #ProfileSelector.Bounds.Bottom}" Click="PlayButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 Play
         </Button>
 
         <Panel Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Width="{Binding $parent.Bounds.Width}">
-            <Button x:Name="DownloadUpdateButton" Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadAvailableButton, DataType={x:Type vm:MainWindowViewModel}}" HorizontalAlignment="Center" MinHeight="60" MinWidth="100" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button x:Name="DownloadUpdateButton" Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadAvailableButton}" HorizontalAlignment="Center" MinHeight="60" MinWidth="100" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
-                    <Label Content="{Binding UpdateButtonString, DataType={x:Type vm:MainWindowViewModel}}"/>
+                    <Label Content="{Binding UpdateButtonString}"/>
                     <LineBreak/>
                         Download now</TextBlock>
             </Button>
         </Panel>
 
-        <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar, DataType={x:Type vm:MainWindowViewModel}}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent, DataType={x:Type vm:MainWindowViewModel}}"/>
+        <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent}"/>
         <Label Margin="0, 1, 0, 0" IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" Canvas.Left="330" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}">Downloading an update..</Label>
 
         <Grid Width="{Binding $parent.Bounds.Width}" Canvas.Bottom="0">
@@ -90,11 +90,11 @@
                 <ColumnDefinition Width="2*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
-            <Label Name="RemoteVersionText" Classes="Code" Background="#D8202020" Content="{Binding RemoteVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="0" HorizontalContentAlignment="Center"/>
+            <Label Name="RemoteVersionText" Classes="Code" Background="#D8202020" Content="{Binding RemoteVersionString}" Grid.Column="0" HorizontalContentAlignment="Center"/>
 
-            <Label Name="LocalVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="2" HorizontalContentAlignment="Center"/>
+            <Label Name="LocalVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalVersionString}" Grid.Column="2" HorizontalContentAlignment="Center"/>
 
-            <Label Name="LauncherVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalLauncherVersionString, DataType={x:Type vm:MainWindowViewModel}}" Grid.Column="4" HorizontalContentAlignment="Center"/>
+            <Label Name="LauncherVersionText" Classes="Code" Background="#D8202020" Content="{Binding LocalLauncherVersionString}" Grid.Column="4" HorizontalContentAlignment="Center"/>
         </Grid>
     </Canvas>
 </Window>

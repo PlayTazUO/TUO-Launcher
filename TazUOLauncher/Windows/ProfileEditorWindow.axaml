@@ -3,6 +3,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TazUOLauncher"
+    xmlns:tazUoLauncher="clr-namespace:TazUOLauncher"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
     Width="800" Height="450" CanResize="False"
     x:DataType="vm:ProfileEditorViewModel"
@@ -19,17 +20,17 @@
         <Grid RowDefinitions="Auto, *" Width="250" Height="{Binding $parent.Bounds.Height}" Canvas.Left="10">
             <Grid Grid.Row="0" Margin="0, 10, 0, 0" ColumnDefinitions="*, *, *">
                 <Button Grid.Column="0" Click="NewProfileClicked">New</Button>
-                <Button Grid.Column="1" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}" Click="DeleteProfileClicked">Delete</Button>
-                <Button Grid.Column="2" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}" Click="CopyProfileClicked">Copy</Button>
+                <Button Grid.Column="1" IsEnabled="{Binding EditAreaEnabled}" Click="DeleteProfileClicked">Delete</Button>
+                <Button Grid.Column="2" IsEnabled="{Binding EditAreaEnabled}" Click="CopyProfileClicked">Copy</Button>
             </Grid>
 
             <ListBox Grid.Row="1"
                 Margin="0, 5, 0, 5"
-                ItemsSource="{Binding Profiles, DataType={x:Type vm:ProfileEditorViewModel}}"
+                ItemsSource="{Binding Profiles}"
                 SelectionChanged="ProfileSelectionChanged"/>
         </Grid>
 
-        <Canvas Width="510" Height="{Binding $parent.Bounds.Height}" Canvas.Right="5" IsEnabled="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}">
+        <Canvas Width="510" Height="{Binding $parent.Bounds.Height}" Canvas.Right="5" IsEnabled="{Binding EditAreaEnabled}">
             <TabControl Width="500" Height="{Binding $parent.Bounds.Height}">
                 <TabItem Header="General">
                     <Grid RowDefinitions="*,*,*,*,*,*,*" ColumnDefinitions="*,*,*,*">
@@ -67,7 +68,7 @@
                         <Button Click="AddPluginClicked" Margin="5, 5, 5, 5">Add</Button>
                         <Button Click="PluginRemoveClicked" Margin="5, 5, 5, 5" Grid.Column="1">Remove</Button>
 
-                        <ListBox x:Name="EntryPluginList" ItemsSource="{Binding Plugins, DataType={x:Type vm:ProfileEditorViewModel}}" Grid.Row="1" Grid.ColumnSpan="2"/>
+                        <ListBox x:Name="EntryPluginList" ItemsSource="{Binding Plugins}" Grid.Row="1" Grid.ColumnSpan="2"/>
                     </Grid>
                 </TabItem>
 
@@ -91,6 +92,6 @@
                 </TabItem>
             </TabControl>
         </Canvas>
-        <Button Classes="Success" Click="SaveButtonClicked" Canvas.Right="5" Canvas.Bottom="5" IsVisible="{Binding EditAreaEnabled, DataType={x:Type vm:ProfileEditorViewModel}}">Save</Button>
+        <Button Classes="Success" Click="SaveButtonClicked" Canvas.Right="5" Canvas.Bottom="5" IsVisible="{Binding EditAreaEnabled}">Save</Button>
     </Canvas>
 </Window>

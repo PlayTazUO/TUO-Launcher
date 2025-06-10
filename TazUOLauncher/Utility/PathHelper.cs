@@ -18,27 +18,38 @@ public static class PathHelper
     {
         try
         {
-            if (returnExeOnly || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return Path.Combine(ClientPath, "ClassicUO.exe");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return Path.Combine(ClientPath, "ClassicUO.bin.x86_64");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return Path.Combine(ClientPath, "ClassicUO.bin.osx");
-            }
-            else
-            {
-                throw new PlatformNotSupportedException("Unsupported operating system.");
-            }
+            return NativePath(returnExeOnly);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Failed to open URL: {ex.Message}");
         }
+
         return string.Empty;
+    }
+
+    private static string NativePath(bool returnExeOnly)
+    {
+        string exeName;
+
+        if (returnExeOnly || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            exeName = CONSTANTS.NATIVE_EXECUTABLE_NAME + ".exe";
+            if (!File.Exists(Path.Combine(ClientPath, exeName)))
+                exeName = CONSTANTS.CLASSIC_EXE_NAME + ".exe";
+
+            return Path.Combine(ClientPath, exeName);
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            exeName = CONSTANTS.NATIVE_EXECUTABLE_NAME;
+            if (!File.Exists(Path.Combine(ClientPath, exeName)))
+                exeName = CONSTANTS.CLASSIC_EXE_NAME;
+
+            return Path.Combine(ClientPath, exeName);
+        }
+
+        throw new PlatformNotSupportedException("Unsupported operating system.");
     }
 }

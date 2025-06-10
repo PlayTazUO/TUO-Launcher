@@ -264,6 +264,7 @@ public partial class MainWindow : Window
     }
 }
 
+
 public class MainWindowViewModel : INotifyPropertyChanged
 {
     private ObservableCollection<string> profiles = new ObservableCollection<string>();
@@ -312,6 +313,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(DownloadProgressBarPercent));
         }
     }
+    
     public bool DevChannelSelected
     {
         get => devChannelSelected; set

@@ -10,9 +10,9 @@ internal static class ClientHelper
     private static Version localClientVersion = GetInstalledVersion();
 
     public static Version LocalClientVersion { get => localClientVersion; set { localClientVersion = GetInstalledVersion(); } }
-    public static bool ExecutableExists()
+    public static bool ExecutableExists(bool checkExeOnly = false)
     {
-        return File.Exists(PathHelper.ClientExecutablePath());
+        return File.Exists(PathHelper.ClientExecutablePath(checkExeOnly));
     }
     public static void TrySetPlusXUnix()
     {

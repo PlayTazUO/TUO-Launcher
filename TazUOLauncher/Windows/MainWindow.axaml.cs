@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Timers;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -25,6 +27,11 @@ public partial class MainWindow : Window
 
         DoChecksAsync();
         LoadProfiles();
+
+        Timer periodicChecks = new Timer(TimeSpan.FromHours(1));
+        periodicChecks.AutoReset = true;
+        periodicChecks.Elapsed += (sender, args) => DoChecksAsync();
+        periodicChecks.Start();
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

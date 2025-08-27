@@ -45,6 +45,9 @@
                         <CheckBox x:Name="EntrySavePass" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Foreground="White">
                             Save Account
                         </CheckBox>
+                        
+                        <Label Grid.Row="2" VerticalAlignment="Center">Server Presets</Label>
+                        <ComboBox x:Name="EntryServerPresets" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="3" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center" VerticalAlignment="Center" ItemsSource="{Binding ServerPresets}" SelectionChanged="ServerPresetSelectionChanged"></ComboBox>
 
                         <Label Grid.Row="3" VerticalAlignment="Center">Connection</Label>
                         <TextBox x:Name="EntryServerIP" ToolTip.Tip="Server address, for example: 192.168.1.1" Watermark="127.0.0.1" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>

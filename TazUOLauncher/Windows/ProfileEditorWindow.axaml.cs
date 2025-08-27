@@ -42,6 +42,15 @@ public partial class ProfileEditorWindow : Window
                 if (Directory.Exists(res))
                 {
                     EntryUODirectory.Text = res;
+                    
+                    var clientPath = Path.Combine(res, "client.exe");
+                    try
+                    {
+                        if (File.Exists(clientPath))
+                            if (ClientVersionHelper.TryParseFromFile(clientPath, out var clientVersion))
+                                EntryClientVersion.Text = clientVersion;
+                    }
+                    catch { }
                 }
                 else
                 {
@@ -173,6 +182,46 @@ public partial class ProfileEditorWindow : Window
         }
     }
 
+    public void ServerPresetSelectionChanged(object s, SelectionChangedEventArgs args)
+    {
+        if (s is not ComboBox comboBox || selectedProfile == null || comboBox.SelectedItem is not string selectedPreset)
+            return;
+
+        switch (selectedPreset)
+        {
+            case "UO Memento":
+                EntryServerIP.Text = "uo-memento.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "UO Alive":
+                EntryServerIP.Text = "login.uoalive.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "Eventine":
+                EntryServerIP.Text = "shard.uoeventine.net";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "Unchained":
+                EntryServerIP.Text = "login.patchuo.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "UO Realms":
+                EntryServerIP.Text = "play.uorealms.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "OSI":
+                EntryServerIP.Text = "75.2.70.184";
+                EntryServerPort.Text = "7776";
+                EntryEncrypedClient.IsChecked = true;
+                break;
+        }
+    }
+
     private void PopulateProfileInfo()
     {
         if (selectedProfile == null) return;
@@ -206,8 +255,26 @@ public class ProfileEditorViewModel : INotifyPropertyChanged
 {
     private ObservableCollection<string> profiles = new ObservableCollection<string>();
     private ObservableCollection<string> plugins = new ObservableCollection<string>();
+    private ObservableCollection<string> serverPresets = new ObservableCollection<string>()
+    {
+        "UO Memento",
+        "Eventine",
+        "UO Alive",
+        "Unchained",
+        "UO Realms",
+        "OSI"
+    };
     private bool editAreaEnabled;
 
+    public ObservableCollection<string> ServerPresets
+    {
+        get => serverPresets;
+        set
+        {
+            serverPresets = value;
+            OnPropertyChanged(nameof(ServerPresets));
+        }
+    }
     public ObservableCollection<string> Plugins
     {
         get => plugins;

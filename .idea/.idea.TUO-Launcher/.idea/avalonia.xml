@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="TazUOLauncher/Windows/MainWindow.axaml" value="TazUOLauncher/TazUOLauncher.csproj" />
+        <entry key="TazUOLauncher/Windows/ProfileEditorWindow.axaml" value="TazUOLauncher/TazUOLauncher.csproj" />
       </map>
     </option>
   </component>

@@ -35,10 +35,22 @@ internal static class ClientHelper
     }
     private static Version GetInstalledVersion()
     {
+        var versionTxt = Path.Combine(PathHelper.ClientPath, "v.txt");
+        if (File.Exists(versionTxt))
+        {
+            try
+            {
+                var version = File.ReadAllText(versionTxt);
+                return new Version(version);
+            }
+            catch { }
+        }
+        
         if (File.Exists(PathHelper.ClientExecutablePath(true)))
         {
             return AssemblyName.GetAssemblyName(PathHelper.ClientExecutablePath(true)).Version ?? new Version(0, 0, 0, 0);
         }
+        
         return new Version(0, 0, 0, 0);
     }
 }

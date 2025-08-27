@@ -81,6 +81,12 @@ internal static class UpdateHelper
         }
     }
 
+    /// <summary>
+    /// Only supports dev/main not launcher channel
+    /// </summary>
+    /// <param name="channel"></param>
+    /// <param name="downloadProgress"></param>
+    /// <param name="onCompleted"></param>
     public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
     {
         if (!HaveData(channel)) return;
@@ -89,43 +95,57 @@ internal static class UpdateHelper
 
         if (releaseData == null || releaseData.assets == null) return;
 
-        string extractTo = string.Empty;
-        switch (channel)
-        {
-            case ReleaseChannel.LAUNCHER:
-                extractTo = Path.Combine(PathHelper.LauncherPath, "LauncherUpdate");
-                break;
-            default:
-                extractTo = PathHelper.ClientPath;
-                break;
-        }
+        string extractTo = PathHelper.ClientPath;
 
         await Task.Run(() =>
         {
+            GitHubReleaseData.Asset? selectedAsset = null;
+            string platformZipName = PlatformHelper.GetPlatformZipName();
+            
+            // First, try to find platform-specific zip
             foreach (GitHubReleaseData.Asset asset in releaseData.assets)
             {
-                if (asset.name != null && asset.name.EndsWith(".zip") && asset.name.StartsWith(CONSTANTS.ZIP_STARTS_WITH) && asset.browser_download_url != null)
+                if (asset.name != null && asset.name.EndsWith(platformZipName) && asset.browser_download_url != null)
                 {
-                    try
-                    {
-                        string tempFilePath = Path.GetTempFileName();
-                        using (var file = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            HttpClient httpClient = new HttpClient();
-                            httpClient.DownloadAsync(asset.browser_download_url, file, downloadProgress).Wait();
-                        }
-
-                        Directory.CreateDirectory(extractTo);
-                        ZipFile.ExtractToDirectory(tempFilePath, extractTo, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.ToString());
-                    }
-
+                    selectedAsset = asset;
                     break;
                 }
             }
+            
+            // Fallback to current method if platform-specific zip not found
+            if (selectedAsset == null)
+            {
+                foreach (GitHubReleaseData.Asset asset in releaseData.assets)
+                {
+                    if (asset.name != null && asset.name.EndsWith(".zip") && asset.name.StartsWith(CONSTANTS.ZIP_STARTS_WITH) && asset.browser_download_url != null)
+                    {
+                        selectedAsset = asset;
+                        break;
+                    }
+                }
+            }
+            
+            if (selectedAsset != null)
+            {
+                Console.WriteLine($"Picked for download: {selectedAsset.name} from {selectedAsset.browser_download_url}");
+                try
+                {
+                    string tempFilePath = Path.GetTempFileName();
+                    using (var file = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        HttpClient httpClient = new HttpClient();
+                        httpClient.DownloadAsync(selectedAsset.browser_download_url, file, downloadProgress).Wait();
+                    }
+
+                    Directory.CreateDirectory(extractTo);
+                    ZipFile.ExtractToDirectory(tempFilePath, extractTo, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+            
             onCompleted?.Invoke();
         });
     }

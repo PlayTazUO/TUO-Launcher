@@ -1,5 +1,9 @@
 ﻿// SPDX-License-Identifier: BSD-2-Clause
 
+using System;
+using System.Buffers.Binary;
+using System.IO;
+
 namespace TazUOLauncher;
 
 public enum ClientVersion
@@ -49,6 +53,51 @@ public enum ClientVersion
 
 public static class ClientVersionHelper
 {
+    public static bool TryParseFromFile(string clientpath, out string version)
+    {
+        if (File.Exists(clientpath))
+        {
+            using (FileStream fs = new FileStream(clientpath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                byte[] buffer = new byte[fs.Length];
+
+                fs.Read(buffer, 0, (int) fs.Length);
+
+                // VS_VERSION_INFO (unicode)
+                Span<byte> vsVersionInfo = stackalloc byte[]
+                {
+                    0x56, 0x00, 0x53, 0x00, 0x5F, 0x00, 0x56,
+                    0x00, 0x45, 0x00, 0x52, 0x00, 0x53, 0x00,
+                    0x49, 0x00, 0x4F, 0x00, 0x4E, 0x00, 0x5F,
+                    0x00, 0x49, 0x00, 0x4E, 0x00, 0x46, 0x00,
+                    0x4F, 0x00
+                };
+
+
+                for (var i = 0; i < buffer.Length; i++)
+                {
+                    if (vsVersionInfo.SequenceEqual(buffer.AsSpan(i, 30)))
+                    {
+                        var offset = i + 42; // 30 + 12
+
+                        var minorPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset));
+                        var majorPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 2));
+                        var privatePart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 4));
+                        var buildPart = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(offset + 6));
+
+                        version = $"{majorPart}.{minorPart}.{buildPart}.{privatePart}";
+
+                        return true;
+                    }
+                }
+            } 
+        }
+
+        version = null;
+
+        return false;
+    }
+
     public static bool IsClientVersionValid(string versionText, out ClientVersion version)
     {
         version = 0;

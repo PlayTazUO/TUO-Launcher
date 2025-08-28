@@ -209,8 +209,13 @@ public partial class ProfileEditorWindow : Window
                 EntryServerPort.Text = "2593";
                 EntryEncrypedClient.IsChecked = false;
                 break;
-            case "UO Realms":
+            case "Faerham Citadel":
                 EntryServerIP.Text = "play.uorealms.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
+            case "Dawn of Ages: Reborn":
+                EntryServerIP.Text = "dawnofagesreborn.servegame.com";
                 EntryServerPort.Text = "2593";
                 EntryEncrypedClient.IsChecked = false;
                 break;
@@ -261,7 +266,8 @@ public class ProfileEditorViewModel : INotifyPropertyChanged
         "Eventine",
         "UO Alive",
         "Unchained",
-        "UO Realms",
+        "Faerham Citadel",
+        "Dawn of Ages: Reborn",
         "OSI"
     };
     private bool editAreaEnabled;

@@ -11,6 +11,7 @@ namespace TazUOLauncher;
 
 public partial class MainWindow : Window
 {
+    public static Window Instance { get; private set; }
     private MainWindowViewModel viewModel;
     private ClientStatus clientStatus = ClientStatus.INITIALIZING;
     private ReleaseChannel nextDownloadType = ReleaseChannel.INVALID;
@@ -18,12 +19,14 @@ public partial class MainWindow : Window
     private Profile? selectedProfile;
     public MainWindow()
     {
+        Instance = this;
         InitializeComponent();
 
         DataContext = viewModel = new MainWindowViewModel();
 
         viewModel.MainChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN;
         viewModel.DevChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV;
+        viewModel.LegacyChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472;
 
         DoChecksAsync();
         LoadProfiles();
@@ -86,7 +89,7 @@ public partial class MainWindow : Window
     }
     private void UpdateVersionStrings()
     {
-        if (UpdateHelper.HaveData(ReleaseChannel.MAIN))
+        if (UpdateHelper.HaveData(LauncherSettings.GetLauncherSaveFile.DownloadChannel))
             viewModel.RemoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, UpdateHelper.ReleaseData[LauncherSettings.GetLauncherSaveFile.DownloadChannel].GetVersion().ToHumanReable());
     }
     private void ClientExistsChecks()
@@ -175,18 +178,29 @@ public partial class MainWindow : Window
     {
         viewModel.MainChannelSelected = true;
         viewModel.DevChannelSelected = false;
+        viewModel.LegacyChannelSelected = false;
         LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.MAIN;
-        ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
-        ClientExistsChecks();
-        UpdateVersionStrings();
-        ClientUpdateChecks();
-        HandleUpdates();
+        RecheckAfterChannelUpdated();
     }
     public void SetDevChannelClicked(object sender, RoutedEventArgs args)
     {
         viewModel.DevChannelSelected = true;
         viewModel.MainChannelSelected = false;
+        viewModel.LegacyChannelSelected = false;
         LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.DEV;
+        RecheckAfterChannelUpdated();
+    }
+    public void SetLegacyChannelClicked(object sender, RoutedEventArgs args)
+    {
+        viewModel.DevChannelSelected = false;
+        viewModel.MainChannelSelected = false;
+        viewModel.LegacyChannelSelected = true;
+        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.NET472;
+        RecheckAfterChannelUpdated();
+    }
+
+    private void RecheckAfterChannelUpdated()
+    {
         ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
         ClientExistsChecks();
         UpdateVersionStrings();
@@ -288,6 +302,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool devChannelSelected;
     private bool mainChannelSelected;
     private bool dangerNoticeStringShowing;
+    private bool legacyChannelSelected;
 
     public ObservableCollection<string> Profiles
     {
@@ -321,6 +336,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
     
+    public bool LegacyChannelSelected
+    {
+        get => legacyChannelSelected; set
+        {
+            legacyChannelSelected = value;
+            OnPropertyChanged(nameof(LegacyChannelSelected));
+        }
+    }
     public bool DevChannelSelected
     {
         get => devChannelSelected; set

@@ -19,8 +19,12 @@ internal static class UpdateHelper
     {
         List<Task> all = new List<Task>(){
             TryGetReleaseData(ReleaseChannel.DEV),
+            Task.Delay(500),
             TryGetReleaseData(ReleaseChannel.MAIN),
+            Task.Delay(500),
             TryGetReleaseData(ReleaseChannel.LAUNCHER),
+            Task.Delay(500),
+            TryGetReleaseData(ReleaseChannel.NET472),
         };
 
         await Task.WhenAll(all);
@@ -40,6 +44,9 @@ internal static class UpdateHelper
                 break;
             case ReleaseChannel.LAUNCHER:
                 url = CONSTANTS.LAUNCHER_RELEASE_URL;
+                break;
+            case ReleaseChannel.NET472:
+                url = CONSTANTS.NET472_CHANNEL_RELEASE_URL;
                 break;
             default:
                 url = CONSTANTS.MAIN_CHANNEL_RELEASE_URL;
@@ -93,7 +100,21 @@ internal static class UpdateHelper
 
         GitHubReleaseData releaseData = ReleaseData[channel];
 
-        if (releaseData == null || releaseData.assets == null) return;
+        if (releaseData == null || releaseData.assets == null)
+        {
+            _ = TryGetReleaseData(channel);
+            return;
+        }
+
+        if (channel != ReleaseChannel.NET472 && ClientHelper.OnlyHasNet472Installed())
+        {
+            if (!await Utility.ShowConfirmationDialog(MainWindow.Instance, "Are you sure?",
+                    "You have the legacy client installed, but you are trying to install a newer version.\nThis will update you to a newer client version which will break plugin support.\nAre you sure you want to continue?\n - If not: change your update channel to Legacy. -"))
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+        }
 
         string extractTo = PathHelper.ClientPath;
 

@@ -10,6 +10,14 @@ internal static class ClientHelper
     private static Version localClientVersion = GetInstalledVersion();
 
     public static Version LocalClientVersion { get => localClientVersion; set { localClientVersion = GetInstalledVersion(); } }
+
+    public static bool OnlyHasNet472Installed()
+    {
+        if (File.Exists(PathHelper.NativeClientPath()))
+            return false;
+
+        return true;
+    }
     public static bool ExecutableExists(bool checkExeOnly = false)
     {
         return File.Exists(PathHelper.ClientExecutablePath(checkExeOnly));

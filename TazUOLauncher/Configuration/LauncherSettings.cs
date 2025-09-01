@@ -39,7 +39,11 @@ internal class LauncherSettings
             {
                 try
                 {
-                    File.WriteAllText(Path.Combine(PathHelper.LauncherPath, "launcherdata.json"), JsonSerializer.Serialize<LauncherSaveFile>(this));
+                    var targetPath = Path.Combine(PathHelper.LauncherPath, "launcherdata.json");
+                    var tempPath = targetPath + ".tmp";
+                    
+                    File.WriteAllText(tempPath, JsonSerializer.Serialize<LauncherSaveFile>(this));
+                    File.Move(tempPath, targetPath, true);
                 }
                 catch (Exception e)
                 {

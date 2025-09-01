@@ -14,15 +14,32 @@ public static class PathHelper
 
     public static string ClientPath { get; set; } = Path.Combine(LauncherPath, CONSTANTS.CLIENT_DIRECTORY_NAME);
 
-    public static string ClientExecutablePath(bool returnExeOnly = false)
+    public static string NativeClientPath()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Path.Combine(ClientPath, CONSTANTS.NATIVE_EXECUTABLE_NAME + ".exe");
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return Path.Combine(ClientPath, CONSTANTS.NATIVE_EXECUTABLE_NAME);
+        }
+
+        return string.Empty;
+    }
+    public static string ClientExecutablePath(bool returnExeOnly = false, bool legacyOnly = false)
     {
         try
         {
+            if(legacyOnly)
+                return Path.Combine(ClientPath, CONSTANTS.CLASSIC_EXE_NAME + ".exe");
+            
             return NativePath(returnExeOnly);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to open URL: {ex.Message}");
+            Console.WriteLine($"Failed to find path: {ex.Message}");
         }
 
         return string.Empty;

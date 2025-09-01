@@ -35,6 +35,11 @@
                         <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding DevChannelSelected}" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem Header="Legacy Channel" GroupName="ChannelGroup" IsChecked="{Binding LegacyChannelSelected}" Click="SetLegacyChannelClicked">
+                        <MenuItem.Icon>
+                            <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding LegacyChannelSelected}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="Discord" Click="OpenDiscordClicked"/>

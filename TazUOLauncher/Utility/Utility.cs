@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 
 namespace TazUOLauncher;
@@ -90,7 +91,7 @@ internal static class Utility
     {
         try
         {
-            var proc = new ProcessStartInfo(PathHelper.ClientExecutablePath(), $"-settings \"{profile.GetSettingsFilePath()}\"");
+            var proc = new ProcessStartInfo(PathHelper.ClientExecutablePath(legacyOnly: LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472), $"-settings \"{profile.GetSettingsFilePath()}\"");
             proc.Arguments += " -skipupdatecheck";
             if (profile.CUOSettings.AutoLogin && !string.IsNullOrEmpty(profile.LastCharacterName))
             {
@@ -295,5 +296,75 @@ internal static class Utility
             Console.WriteLine("Looks like no file was selected.");
         }
         return string.Empty;
+    }
+
+    public static async Task<bool> ShowConfirmationDialog(Window parent, string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 500,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            ShowInTaskbar = false
+        };
+
+        var panel = new StackPanel
+        {
+            Margin = new Avalonia.Thickness(20),
+            Spacing = 20
+        };
+
+        var messageText = new TextBlock
+        {
+            Text = message,
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+        };
+
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+            Spacing = 10
+        };
+
+        bool result = false;
+
+        var yesButton = new Button
+        {
+            Content = "Yes",
+            MinWidth = 80,
+            Padding = new Avalonia.Thickness(10, 5)
+        };
+        yesButton.Click += (s, e) =>
+        {
+            result = true;
+            dialog.Close();
+        };
+
+        var noButton = new Button
+        {
+            Content = "No",
+            MinWidth = 80,
+            Padding = new Avalonia.Thickness(10, 5)
+        };
+        noButton.Click += (s, e) =>
+        {
+            result = false;
+            dialog.Close();
+        };
+
+        buttonPanel.Children.Add(yesButton);
+        buttonPanel.Children.Add(noButton);
+
+        panel.Children.Add(messageText);
+        panel.Children.Add(buttonPanel);
+
+        dialog.Content = panel;
+
+        await dialog.ShowDialog(parent);
+        return result;
     }
 }

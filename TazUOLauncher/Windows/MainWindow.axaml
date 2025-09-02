@@ -21,6 +21,7 @@
                 <MenuItem Header="Tools">
                     <MenuItem Header="Install latest main build" Click="DownloadMainBuildClick"/>
                     <MenuItem Header="Install latest dev build" Click="DownloadDevBuildClick"/>
+                    <MenuItem Header="Install latest legacy build" Click="DownloadLegacyBuildClick"/>
                     <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
                 </MenuItem>
                 <Separator/>

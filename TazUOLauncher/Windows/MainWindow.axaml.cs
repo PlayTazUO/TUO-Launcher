@@ -269,6 +269,12 @@ public partial class MainWindow : Window
         nextDownloadType = ReleaseChannel.DEV;
         DoNextDownload();
     }
+    public void DownloadLegacyBuildClick(object sender, RoutedEventArgs args)
+    {
+        if (clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+        nextDownloadType = ReleaseChannel.NET472;
+        DoNextDownload();
+    }
     public void ImportCUOLauncherClick(object sender, RoutedEventArgs args)
     {
         if (!Utility.TryImportCUOProfiles())

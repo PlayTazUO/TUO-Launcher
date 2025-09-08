@@ -92,6 +92,7 @@ internal static class Utility
         try
         {
             var proc = new ProcessStartInfo(PathHelper.ClientExecutablePath(legacyOnly: LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472), $"-settings \"{profile.GetSettingsFilePath()}\"");
+            proc.WorkingDirectory = PathHelper.ClientPath;
             proc.Arguments += " -skipupdatecheck";
             if (profile.CUOSettings.AutoLogin && !string.IsNullOrEmpty(profile.LastCharacterName))
             {
@@ -105,9 +106,7 @@ internal static class Utility
             {
                 proc.Arguments += " " + profile.AdditionalArgs;
             }
-
-            proc.UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
+            
             Process.Start(proc);
         }
         catch (Exception ex)

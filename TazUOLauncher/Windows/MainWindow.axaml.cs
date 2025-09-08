@@ -110,7 +110,7 @@ public partial class MainWindow : Window
     }
     private void ClientUpdateChecks()
     {
-        if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client insalled already
+        if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client installed already
             if (UpdateHelper.HaveData(LauncherSettings.GetLauncherSaveFile.DownloadChannel))
             {
                 if (UpdateHelper.ReleaseData[LauncherSettings.GetLauncherSaveFile.DownloadChannel].GetVersion() > ClientHelper.LocalClientVersion)
@@ -125,7 +125,7 @@ public partial class MainWindow : Window
         {
             switch (nextDownloadType)
             {
-                case ReleaseChannel.MAIN or ReleaseChannel.DEV:
+                case ReleaseChannel.MAIN or ReleaseChannel.DEV or ReleaseChannel.NET472:
                     viewModel.UpdateButtonString = clientStatus == ClientStatus.NO_LOCAL_CLIENT ? CONSTANTS.NO_CLIENT_AVAILABLE : CONSTANTS.CLIENT_UPDATE_AVAILABLE;
                     viewModel.ShowDownloadAvailableButton = true;
                     break;

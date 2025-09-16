@@ -33,7 +33,7 @@ public static class PathHelper
         try
         {
             if(legacyOnly)
-                return Path.Combine(ClientPath, CONSTANTS.CLASSIC_EXE_NAME + ".exe");
+                return Path.Combine(ClientPath, CONSTANTS.CLASSIC_EXE_NAME + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".exe" : string.Empty));
             
             return NativePath(returnExeOnly);
         }

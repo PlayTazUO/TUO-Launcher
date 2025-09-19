@@ -211,7 +211,7 @@ public partial class MainWindow : Window
     {
         ClientHelper.TrySetPlusXUnix();
         if (selectedProfile != null)
-            Utility.LaunchClient(selectedProfile);
+            Utility.LaunchClient(selectedProfile, this);
     }
     public void DownloadButtonClicked(object sender, RoutedEventArgs args)
     {

@@ -87,11 +87,37 @@ internal static class Utility
         }
     }
 
-    public static void LaunchClient(Profile profile)
+    public static void LaunchClient(Profile profile, Window window, bool force = false)
     {
+        string path = PathHelper.ClientExecutablePath(legacyOnly: LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472);
+        string clientPath = Path.Combine(profile.CUOSettings.UltimaOnlineDirectory, "client.exe");
+
+        if (!File.Exists(path)) return;
+        
+        if (!force && ClientVersionHelper.TryParseFromFile(clientPath, out var version) && version != profile.CUOSettings.ClientVersion)
+        {
+            _ = ShowConfirmationDialog(
+                window, 
+                "Client version mismatch", 
+                "The client version in the launcher settings does not match the client version on your system.\n\nDo you want to update the client version in the launcher settings to match the client version on file?",
+                (b) =>
+                {
+                    if (b)
+                    {
+                        profile.CUOSettings.ClientVersion = version;
+                        profile.Save();
+                    }
+                    
+                    LaunchClient(profile, window, true);
+                }
+            );
+
+            return;
+        }
+        
         try
         {
-            var proc = new ProcessStartInfo(PathHelper.ClientExecutablePath(legacyOnly: LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472), $"-settings \"{profile.GetSettingsFilePath()}\"");
+            ProcessStartInfo proc = new ProcessStartInfo(path, $"-settings \"{profile.GetSettingsFilePath()}\"");
             proc.WorkingDirectory = PathHelper.ClientPath;
             proc.Arguments += " -skipupdatecheck";
             if (profile.CUOSettings.AutoLogin && !string.IsNullOrEmpty(profile.LastCharacterName))
@@ -297,7 +323,7 @@ internal static class Utility
         return string.Empty;
     }
 
-    public static async Task<bool> ShowConfirmationDialog(Window parent, string title, string message)
+    public static async Task<bool> ShowConfirmationDialog(Window parent, string title, string message, Action<bool> onResult = null)
     {
         var dialog = new Window
         {
@@ -364,6 +390,7 @@ internal static class Utility
         dialog.Content = panel;
 
         await dialog.ShowDialog(parent);
+        onResult?.Invoke(result);
         return result;
     }
 }

@@ -3,7 +3,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TazUOLauncher" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Width="800" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
-    <Canvas Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
+    <Canvas x:Name="MainCanvas" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
         <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
             <Image.OpacityMask>
                 <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" RadiusX="40%" RadiusY="40%">
@@ -39,6 +39,14 @@
                     <MenuItem Header="Legacy Channel" GroupName="ChannelGroup" IsChecked="{Binding LegacyChannelSelected}" Click="SetLegacyChannelClicked">
                         <MenuItem.Icon>
                             <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding LegacyChannelSelected}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Options">
+                    <MenuItem Header="Auto install updates" GroupName="OptionsGroup" IsChecked="{Binding AutoApplyUpdates}" Click="AutoInstallUpdatesClicked">
+                        <MenuItem.Icon>
+                            <Image Opacity="0.4" Source="resm:TazUOLauncher.Resources.square-check-solid.png?assembly=TazUOLauncher" IsVisible="{Binding AutoApplyUpdates}" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>

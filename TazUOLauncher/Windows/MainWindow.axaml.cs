@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Timers;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace TazUOLauncher;
@@ -35,6 +37,10 @@ public partial class MainWindow : Window
         periodicChecks.AutoReset = true;
         periodicChecks.Elapsed += (sender, args) => DoChecksAsync();
         periodicChecks.Start();
+        
+        DateTime dt = DateTime.Now;
+        if(dt.Month == 12)
+            MainCanvas.Children.Add(new SnowOverlayControl(new Rect(0, 0, 800, 450)));
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)
@@ -59,7 +65,8 @@ public partial class MainWindow : Window
         UpdateVersionStrings();
         CheckLauncherVersion();
         ClientUpdateChecks();
-        HandleUpdates();
+        if (!AutoUpdateHandler())
+            HandleUpdates();
     }
     private void SetProfileSelectorComboBox()
     {
@@ -131,6 +138,24 @@ public partial class MainWindow : Window
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Must be called after ClientUpdateChecks
+    /// </summary>
+    private bool AutoUpdateHandler()
+    {
+        if (nextDownloadType == ReleaseChannel.INVALID) return false;
+
+        if (clientStatus <= ClientStatus.DOWNLOAD_IN_PROGRESS) return false;
+        
+        if (nextDownloadType > ReleaseChannel.INVALID && LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates)
+        {
+            DoNextDownload();
+            return true;
+        }
+
+        return false;
     }
     private void DoNextDownload()
     {
@@ -205,7 +230,8 @@ public partial class MainWindow : Window
         ClientExistsChecks();
         UpdateVersionStrings();
         ClientUpdateChecks();
-        HandleUpdates();
+        if(!AutoUpdateHandler())
+            HandleUpdates();
     }
     public void PlayButtonClicked(object sender, RoutedEventArgs args)
     {
@@ -284,6 +310,10 @@ public partial class MainWindow : Window
         }
         LoadProfiles();
     }
+    public void AutoInstallUpdatesClicked(object sender, RoutedEventArgs args)
+    {
+        LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates = viewModel.AutoApplyUpdates = !LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
+    }
     public void ToolsButtonClick(object sender, RoutedEventArgs args)
     {
         ((Button)sender)?.ContextMenu?.Open();
@@ -309,6 +339,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool mainChannelSelected;
     private bool dangerNoticeStringShowing;
     private bool legacyChannelSelected;
+    private bool autoApplyUpdates = LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
 
     public ObservableCollection<string> Profiles
     {
@@ -341,7 +372,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(DownloadProgressBarPercent));
         }
     }
-    
+    public bool AutoApplyUpdates
+    {
+        get => autoApplyUpdates; set
+        {
+            autoApplyUpdates = value;
+            OnPropertyChanged(nameof(AutoApplyUpdates));
+        }
+    }
     public bool LegacyChannelSelected
     {
         get => legacyChannelSelected; set

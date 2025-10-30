@@ -106,16 +106,6 @@ internal static class UpdateHelper
             return;
         }
 
-        if (channel != ReleaseChannel.NET472 && ClientHelper.OnlyHasNet472Installed())
-        {
-            if (!await Utility.ShowConfirmationDialog(MainWindow.Instance, "Are you sure?",
-                    "You have the legacy client installed, but you are trying to install a newer version.\nThis will update you to a newer client version which will break plugin support.\nAre you sure you want to continue?\n - If not: change your update channel to Legacy. -"))
-            {
-                onCompleted?.Invoke();
-                return;
-            }
-        }
-
         string extractTo = PathHelper.ClientPath;
 
         await Task.Run(() =>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
@@ -148,6 +149,8 @@ public partial class MainWindow : Window
         if (nextDownloadType == ReleaseChannel.INVALID) return false;
 
         if (clientStatus <= ClientStatus.DOWNLOAD_IN_PROGRESS) return false;
+
+        if (Process.GetProcessesByName("TazUO").Length > 0) return false;
         
         if (nextDownloadType > ReleaseChannel.INVALID && LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates)
         {
@@ -180,6 +183,7 @@ public partial class MainWindow : Window
             nextDownloadType = ReleaseChannel.INVALID;
             ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
             ClientExistsChecks();
+            ClientUpdateChecks();
             HandleUpdates();
         });
     }

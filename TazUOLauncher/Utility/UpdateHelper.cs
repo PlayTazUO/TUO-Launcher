@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -97,6 +98,12 @@ internal static class UpdateHelper
     public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
     {
         if (!HaveData(channel)) return;
+
+        if (Process.GetProcessesByName("TazUO").Length > 0)
+        {
+            onCompleted();
+            return;
+        }
 
         GitHubReleaseData releaseData = ReleaseData[channel];
 

@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 
 namespace TazUOLauncher;
 
@@ -95,14 +96,32 @@ internal static class UpdateHelper
     /// <param name="channel"></param>
     /// <param name="downloadProgress"></param>
     /// <param name="onCompleted"></param>
-    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
+    /// <param name="parentWindow"></param>
+    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted, Window? parentWindow = null)
     {
         if (!HaveData(channel)) return;
 
         if (Process.GetProcessesByName("TazUO").Length > 0)
         {
-            onCompleted();
-            return;
+            if (parentWindow != null)
+            {
+                bool proceed = await Utility.ShowConfirmationDialog(
+                    parentWindow,
+                    "TazUO is Running",
+                    "TazUO appears to be running. Updating while the client is running may cause issues.\n\nDo you want to proceed with the update anyway?"
+                );
+
+                if (!proceed)
+                {
+                    onCompleted();
+                    return;
+                }
+            }
+            else
+            {
+                onCompleted();
+                return;
+            }
         }
 
         GitHubReleaseData releaseData = ReleaseData[channel];

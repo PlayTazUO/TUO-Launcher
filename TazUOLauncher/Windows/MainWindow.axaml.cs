@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace TazUOLauncher;
@@ -66,7 +65,7 @@ public partial class MainWindow : Window
         UpdateVersionStrings();
         CheckLauncherVersion();
         ClientUpdateChecks();
-        if (!AutoUpdateHandler())
+        if (!await AutoUpdateHandler())
             HandleUpdates();
     }
     private void SetProfileSelectorComboBox()
@@ -118,6 +117,9 @@ public partial class MainWindow : Window
     }
     private void ClientUpdateChecks()
     {
+        //FOR TESTING
+        nextDownloadType = LauncherSettings.GetLauncherSaveFile.DownloadChannel;
+
         if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client installed already
             if (UpdateHelper.HaveData(LauncherSettings.GetLauncherSaveFile.DownloadChannel))
             {
@@ -144,14 +146,23 @@ public partial class MainWindow : Window
     /// <summary>
     /// Must be called after ClientUpdateChecks
     /// </summary>
-    private bool AutoUpdateHandler()
+    private async Task<bool> AutoUpdateHandler()
     {
         if (nextDownloadType == ReleaseChannel.INVALID) return false;
 
         if (clientStatus <= ClientStatus.DOWNLOAD_IN_PROGRESS) return false;
 
-        if (Process.GetProcessesByName("TazUO").Length > 0) return false;
-        
+        if (Process.GetProcessesByName("TazUO").Length > 0)
+        {
+            bool proceed = await Utility.ShowConfirmationDialog(
+                this,
+                "TazUO is Running",
+                "TazUO appears to be running. Updating while the client is running may cause issues.\n\nDo you want to proceed with the update anyway?"
+            );
+
+            if (!proceed) return false;
+        }
+
         if (nextDownloadType > ReleaseChannel.INVALID && LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates)
         {
             DoNextDownload();
@@ -185,7 +196,7 @@ public partial class MainWindow : Window
             ClientExistsChecks();
             ClientUpdateChecks();
             HandleUpdates();
-        });
+        }, this);
     }
     private void OpenEditProfiles()
     {
@@ -228,13 +239,13 @@ public partial class MainWindow : Window
         RecheckAfterChannelUpdated();
     }
 
-    private void RecheckAfterChannelUpdated()
+    private async void RecheckAfterChannelUpdated()
     {
         ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
         ClientExistsChecks();
         UpdateVersionStrings();
         ClientUpdateChecks();
-        if(!AutoUpdateHandler())
+        if(!await AutoUpdateHandler())
             HandleUpdates();
     }
     public void PlayButtonClicked(object sender, RoutedEventArgs args)

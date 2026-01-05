@@ -117,9 +117,6 @@ public partial class MainWindow : Window
     }
     private void ClientUpdateChecks()
     {
-        //FOR TESTING
-        nextDownloadType = LauncherSettings.GetLauncherSaveFile.DownloadChannel;
-
         if (clientStatus > ClientStatus.NO_LOCAL_CLIENT) //Only check for updates if we have a client installed already
             if (UpdateHelper.HaveData(LauncherSettings.GetLauncherSaveFile.DownloadChannel))
             {

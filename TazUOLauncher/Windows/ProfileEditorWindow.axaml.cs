@@ -227,6 +227,11 @@ public partial class ProfileEditorWindow : Window
                 EntryServerPort.Text = "7776";
                 EntryEncrypedClient.IsChecked = true;
                 break;
+            case "Insane UO":
+                EntryServerIP.Text = "play.insaneuo.com";
+                EntryServerPort.Text = "2593";
+                EntryEncrypedClient.IsChecked = false;
+                break;
         }
     }
 
@@ -266,6 +271,7 @@ public class ProfileEditorViewModel : INotifyPropertyChanged
     private ObservableCollection<string> serverPresets = new ObservableCollection<string>()
     {
         "UO Memento",
+        "Insane UO",
         "Eventine",
         "UO Alive",
         "Unchained",

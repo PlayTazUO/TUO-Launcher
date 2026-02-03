@@ -13,7 +13,7 @@ internal static class CONSTANTS {
     public const string LOCAL_VERSION_FORMAT = "Local Version: {0}";
     public const string CLIENT_DIRECTORY_NAME = "TazUO";
     public const string CLIENT_UPDATE_AVAILABLE = "TazUO update available";
-    public const string NO_CLIENT_AVAILABLE = "No client found";
+    public const string NO_CLIENT_AVAILABLE = "TazUO not installed";
     public const string EDIT_PROFILES = "[ Edit Profiles ]";
     public const string ZIP_STARTS_WITH = "TazUO";
     public const string CLASSIC_EXE_NAME = "ClassicUO";

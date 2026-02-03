@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -114,7 +115,7 @@ internal static class Utility
 
             return;
         }
-        
+
         try
         {
             ProcessStartInfo proc = new ProcessStartInfo(path, $"-settings \"{profile.GetSettingsFilePath()}\"");
@@ -124,16 +125,27 @@ internal static class Utility
             {
                 proc.Arguments += $" -lastcharactername \"{profile.LastCharacterName}\"";
             }
+
             if (profile.CUOSettings.AutoLogin)
             {
                 proc.Arguments += " -skiploginscreen";
             }
+
             if (!string.IsNullOrEmpty(profile.AdditionalArgs))
             {
                 proc.Arguments += " " + profile.AdditionalArgs;
             }
-            
+
             Process.Start(proc);
+        }
+        catch (Win32Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            if (ex.Message.Contains("Permission denied"))
+            {
+                ((MainWindowViewModel)MainWindow.Instance.DataContext).DangerNoticeString =
+                    "Permission denied when trying to launch TazUO";
+            }
         }
         catch (Exception ex)
         {

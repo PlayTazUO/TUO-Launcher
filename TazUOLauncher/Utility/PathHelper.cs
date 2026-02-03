@@ -12,6 +12,9 @@ public static class PathHelper
 
     public static string SettingsPath { get; set; } = Path.Combine(ProfilesPath, "Settings");
 
+    /// <summary>
+    /// This is the path to TazUO client, example: /home/TazUO Launcher/TazUO
+    /// </summary>
     public static string ClientPath { get; set; } = Path.Combine(LauncherPath, CONSTANTS.CLIENT_DIRECTORY_NAME);
 
     public static string NativeClientPath()

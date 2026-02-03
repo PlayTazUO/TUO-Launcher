@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -11,13 +12,36 @@ internal static class ClientHelper
 
     public static Version LocalClientVersion { get => localClientVersion; set { localClientVersion = GetInstalledVersion(); } }
 
-    public static bool OnlyHasNet472Installed()
+    /// <summary>
+    /// This will cleanup TazUO files when swapping channels
+    /// </summary>
+    public static void CleanUpClientFiles()
     {
-        if (File.Exists(PathHelper.NativeClientPath()))
-            return false;
+        string[] keepDirectories = new[] { "Data", "LegionScripts", "Fonts", "ExternalImages" };
+        
+        try
+        {
+            DirectoryInfo directoryInfo = new DirectoryInfo(PathHelper.ClientPath);
 
-        return true;
+            if (!directoryInfo.Exists) return;
+
+            var subDirectories = directoryInfo.GetDirectories();
+            foreach (var subDirectory in subDirectories)
+            {
+                if (keepDirectories.Contains(subDirectory.Name)) continue;
+                subDirectory.Delete(true);
+            }
+            
+            var files = directoryInfo.GetFiles();
+            foreach (var file in files)
+                file.Delete();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cleaning up client files: {ex}");
+        }
     }
+    
     public static bool ExecutableExists(bool checkExeOnly = false)
     {
         return File.Exists(PathHelper.ClientExecutablePath(checkExeOnly));

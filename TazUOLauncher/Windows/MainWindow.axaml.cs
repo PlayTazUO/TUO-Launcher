@@ -213,6 +213,8 @@ public partial class MainWindow : Window
 
     public void SetStableChannelClicked(object sender, RoutedEventArgs args)
     {
+        if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN) return;
+        
         viewModel.MainChannelSelected = true;
         viewModel.DevChannelSelected = false;
         viewModel.LegacyChannelSelected = false;
@@ -221,6 +223,8 @@ public partial class MainWindow : Window
     }
     public void SetDevChannelClicked(object sender, RoutedEventArgs args)
     {
+        if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV) return;
+        
         viewModel.DevChannelSelected = true;
         viewModel.MainChannelSelected = false;
         viewModel.LegacyChannelSelected = false;
@@ -229,6 +233,8 @@ public partial class MainWindow : Window
     }
     public void SetLegacyChannelClicked(object sender, RoutedEventArgs args)
     {
+        if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472) return;
+        
         viewModel.DevChannelSelected = false;
         viewModel.MainChannelSelected = false;
         viewModel.LegacyChannelSelected = true;
@@ -238,6 +244,8 @@ public partial class MainWindow : Window
 
     private async void RecheckAfterChannelUpdated()
     {
+        ClientHelper.CleanUpClientFiles(); //Clean up files before redownloading to avoid errors
+        
         ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
         ClientExistsChecks();
         UpdateVersionStrings();

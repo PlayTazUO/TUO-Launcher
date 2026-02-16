@@ -13,28 +13,33 @@ namespace TazUOLauncher;
 
 internal static class UpdateHelper
 {
-    public static ConcurrentDictionary<ReleaseChannel, GitHubReleaseData> ReleaseData = new ConcurrentDictionary<ReleaseChannel, GitHubReleaseData>();
+    public static ConcurrentDictionary<ReleaseChannel, GitHubReleaseData> ReleaseData = new();
 
     public static bool HaveData(ReleaseChannel channel) { return ReleaseData.ContainsKey(channel) && ReleaseData[channel] != null; }
 
-    public static async Task GetAllReleaseData()
+    public static async Task GetAllReleaseData(ReleaseChannel? priorityChannel = null)
     {
-        List<Task> all = new List<Task>(){
-            TryGetReleaseData(ReleaseChannel.DEV),
-            Task.Delay(500),
-            TryGetReleaseData(ReleaseChannel.MAIN),
-            Task.Delay(500),
-            TryGetReleaseData(ReleaseChannel.LAUNCHER),
-            Task.Delay(500),
-            TryGetReleaseData(ReleaseChannel.NET472),
-        };
+        if (priorityChannel.HasValue)
+            await TryGetReleaseData(priorityChannel.Value);
 
-        await Task.WhenAll(all);
+        var remaining = new[] { ReleaseChannel.DEV, ReleaseChannel.MAIN, ReleaseChannel.LAUNCHER, ReleaseChannel.NET472 };
+
+        bool first = true;
+        foreach (var channel in remaining)
+        {
+            if (priorityChannel.HasValue && channel == priorityChannel.Value)
+                continue;
+            if (!first) await Task.Delay(1000);
+            await TryGetReleaseData(channel);
+            first = false;
+        }
     }
 
     private static async Task<GitHubReleaseData?> TryGetReleaseData(ReleaseChannel channel)
     {
         string url;
+        
+        Console.WriteLine($"Grabbing release data for {channel}...");
 
         switch (channel)
         {
@@ -79,7 +84,7 @@ internal static class UpdateHelper
 
         try
         {
-            var httpClient = new HttpClient();
+            using var httpClient = new HttpClient();
             string jsonResponse = await httpClient.Send(restApi).Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<GitHubReleaseData>(jsonResponse);
         }
@@ -87,6 +92,39 @@ internal static class UpdateHelper
         {
             Console.WriteLine(e);
             return null;
+        }
+    }
+
+    public static async Task<string> GetNews(ReleaseChannel channel)
+    {
+        string chan = "dev";
+        switch (channel)
+        {
+            case ReleaseChannel.MAIN:
+                chan = "main";
+                break;
+            case ReleaseChannel.NET472:
+                chan = "legacy";
+                break;
+        }
+        string url = string.Format(CONSTANTS.CHANGE_LOG_URL, chan);
+        
+        Console.WriteLine($"Grabbing changelog from {channel} channel...");
+
+        try
+        {
+            using var client = new HttpClient();
+            string rawResponse = await client.GetStringAsync(url);
+            
+            if (rawResponse.Length > 8000)
+                rawResponse = rawResponse.Substring(0, 8000) + $"... \n For more see {url}";
+            
+            return rawResponse;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return "Unable to retrieve news..";
         }
     }
 

@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Markdig;
 
 namespace TazUOLauncher;
 
@@ -29,7 +30,7 @@ public partial class MainWindow : Window
         viewModel.MainChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN;
         viewModel.DevChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV;
         viewModel.LegacyChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472;
-
+        
         DoChecksAsync();
         LoadProfiles();
 
@@ -42,7 +43,6 @@ public partial class MainWindow : Window
         if(dt.Month == 12)
             MainCanvas.Children.Add(new SnowOverlayControl(new Rect(0, 0, 800, 450)));
     }
-
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         profileWindow?.Close();
@@ -51,6 +51,18 @@ public partial class MainWindow : Window
 
         base.OnClosing(e);
     }
+
+    private async void LoadNews()
+    {
+        string news = await UpdateHelper.GetNews(LauncherSettings.GetLauncherSaveFile.DownloadChannel);
+        
+        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+        news = Markdown.ToHtml(news, pipeline).Replace("<li></li>", ""); //Remove empty list items
+        news += "<br><br>"; //Add some spacing at the bottom to make sure our scroll area doesn't cut it off..
+        //Console.WriteLine(news);
+        
+        viewModel.NewsContentString = news;
+    }
     private async void LoadProfiles()
     {
         await ProfileManager.GetAllProfiles();
@@ -58,7 +70,8 @@ public partial class MainWindow : Window
     }
     private async void DoChecksAsync()
     {
-        var remoteVersionInfo = UpdateHelper.GetAllReleaseData();
+        LoadNews();
+        var remoteVersionInfo = UpdateHelper.GetAllReleaseData(LauncherSettings.GetLauncherSaveFile.DownloadChannel);
         ClientExistsChecks(); //Doesn't need to wait for release data
 
         await remoteVersionInfo; //Things after this are waiting for release data
@@ -244,6 +257,7 @@ public partial class MainWindow : Window
 
     private async void RecheckAfterChannelUpdated()
     {
+        LoadNews();
         ClientHelper.CleanUpClientFiles(); //Clean up files before redownloading to avoid errors
         
         ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
@@ -291,13 +305,9 @@ public partial class MainWindow : Window
     {
         OpenEditProfiles();
     }
-    public void OpenWikiClicked(object sender, RoutedEventArgs args)
+    public void OpenWebsiteClicked(object sender, RoutedEventArgs args)
     {
-        WebLinks.OpenURLInBrowser(CONSTANTS.WIKI_URL);
-    }
-    public void OpenDiscordClicked(object sender, RoutedEventArgs args)
-    {
-        WebLinks.OpenURLInBrowser(CONSTANTS.DISCORD_URL);
+        WebLinks.OpenURLInBrowser(CONSTANTS.WEBSITE_URL);
     }
     public void OpenGithubClicked(object sender, RoutedEventArgs args)
     {
@@ -334,11 +344,6 @@ public partial class MainWindow : Window
     {
         LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates = viewModel.AutoApplyUpdates = !LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
     }
-    public void ToolsButtonClick(object sender, RoutedEventArgs args)
-    {
-        ((Button)sender)?.ContextMenu?.Open();
-        args.Handled = true;
-    }
 }
 
 
@@ -360,7 +365,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool dangerNoticeStringShowing;
     private bool legacyChannelSelected;
     private bool autoApplyUpdates = LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
-
+    private string newsContentString = "Gathering news...";
+    
     public ObservableCollection<string> Profiles
     {
         get => profiles;
@@ -496,6 +502,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             showLauncherUpdateButton = value;
             OnPropertyChanged(nameof(ShowLauncherUpdateButton));
+        }
+    }
+    public string NewsContentString
+    {
+        get => newsContentString; set
+        {
+            newsContentString = value;
+            OnPropertyChanged(nameof(NewsContentString));
         }
     }
     public MainWindowViewModel()

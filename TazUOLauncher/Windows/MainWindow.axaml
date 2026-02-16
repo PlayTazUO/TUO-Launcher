@@ -2,7 +2,44 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:TazUOLauncher" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Width="800" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
+    xmlns:vm="using:TazUOLauncher"
+    xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Width="800" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
+    
+    <Window.Resources>
+        <x:String x:Key="NewsStyle">
+            body, html { 
+            background-color: black;
+            }
+            h1, h2 { 
+            color: #3498db; 
+            border-bottom: 1px solid #246a99;
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            }
+            h3 { 
+            color: #AB7100;
+            margin: 10px 0px 0px 0px;
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            }
+            ol, ul { 
+            color: #FFFFFF;
+            margin-left: 20px;
+            margin-bottom: 0px;
+            margin-top: 0px;
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            }
+            li { 
+            color: #FFFFFF; 
+            margin: 0px;
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            }
+            p { 
+            color: #FFFFFF;
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            }
+        </x:String>
+    </Window.Resources>
+    
     <Canvas x:Name="MainCanvas" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
         <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
             <Image.OpacityMask>
@@ -13,7 +50,7 @@
             </Image.OpacityMask>
         </Image>
 
-        <Menu>
+        <Menu Name="Menu">
             <MenuItem Classes="Small">
                 <MenuItem.Header>
                     <Image Source="resm:TazUOLauncher.Resources.bars.png?assembly=TazUOLauncher" Width="20" Height="20" Stretch="Fill" Opacity="0.55" />
@@ -51,27 +88,34 @@
                     </MenuItem>
                 </MenuItem>
                 <Separator/>
-                <MenuItem Header="Discord" Click="OpenDiscordClicked"/>
+                <MenuItem Header="TazUO.org" Click="OpenWebsiteClicked"/>
                 <Separator/>
                 <MenuItem Header="GitHub" Click="OpenGithubClicked"/>
-                <Separator/>
-                <MenuItem Header="Wiki" Click="OpenWikiClicked"/>
                 <Separator/>
                 <MenuItem Header="Edit Profiles" Click="EditProfilesClicked"/>
             </MenuItem>
         </Menu>
 
-        <Grid Width="{Binding $parent.Bounds.Width}" IsVisible="{Binding DangerNoticeStringShowing}" Grid.ColumnDefinitions="*, Auto, *" Margin="0, 5, 0, 0">
+        <Grid Width="{Binding $parent.Bounds.Width}" IsVisible="{Binding DangerNoticeStringShowing}" ColumnDefinitions="*, Auto, *" Margin="0, 5, 0, 0">
             <Label Classes="Warning" HorizontalContentAlignment="Center" Padding="4, 4, 4, 4" Grid.Column="1" Content="{Binding DangerNoticeString}" Background="#D8202020"/>
             <Button Classes="" Theme="{DynamicResource SolidButton}" IsVisible="{Binding ShowLauncherUpdateButton}" Click="GoToLauncherDownload" Grid.Column="2">
                     Download Launcher
             </Button>
         </Grid>
+        
+        <Panel Canvas.Top="40" Canvas.Left="15" Width="270" Height="380">
+            <Border CornerRadius="5" Background="#212121" Opacity="0.75" />
 
-        <Rectangle RadiusX="20" RadiusY="20" Width="200" Height="200" Canvas.Left="300" Canvas.Top="40" Opacity="0.55">
-            <Rectangle.Effect>
-                <DropShadowEffect/>
-            </Rectangle.Effect>
+            <ScrollViewer x:Name="NewsArea" Margin="5" Padding="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <!-- <TextBlock Text="{Binding NewsContentString}" TextWrapping="Wrap" FontFamily="Mono" FontSize="12" Foreground="White" /> -->
+                <HtmlPanel Text="{Binding NewsContentString}" BaseStylesheet="{StaticResource NewsStyle}" />
+            </ScrollViewer>
+        </Panel>
+
+        <Rectangle RadiusX="5" RadiusY="5" Width="200" Height="200" Canvas.Left="300" Canvas.Top="40" Opacity="0.85">
+            <!-- <Rectangle.Effect> -->
+            <!--     <DropShadowDirectionEffect ></DropShadowDirectionEffect> -->
+            <!-- </Rectangle.Effect> -->
             <Rectangle.Fill>
                 <ImageBrush Source="resm:TazUOLauncher.Resources.centerlogo.png?assembly=TazUOLauncher"/>
             </Rectangle.Fill>

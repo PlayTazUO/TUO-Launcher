@@ -28,7 +28,7 @@ internal static class Utility
                 if (m.Success)
                     data.name = m.Groups[1].Value;
             }
-
+            
             if (Version.TryParse(data.name, out var version))
             {
                 return version;

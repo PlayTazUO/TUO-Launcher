@@ -257,11 +257,16 @@ public partial class MainWindow : Window
 
     private async void RecheckAfterChannelUpdated()
     {
+        var releaseData= UpdateHelper.GetAllReleaseData(LauncherSettings.GetLauncherSaveFile.DownloadChannel);
+        viewModel.RemoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, "Checking");
         LoadNews();
         ClientHelper.CleanUpClientFiles(); //Clean up files before redownloading to avoid errors
         
         ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
         ClientExistsChecks();
+
+        await releaseData;
+        
         UpdateVersionStrings();
         ClientUpdateChecks();
         if(!await AutoUpdateHandler())

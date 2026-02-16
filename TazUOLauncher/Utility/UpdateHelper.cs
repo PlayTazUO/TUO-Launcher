@@ -17,22 +17,11 @@ internal static class UpdateHelper
 
     public static bool HaveData(ReleaseChannel channel) { return ReleaseData.ContainsKey(channel) && ReleaseData[channel] != null; }
 
-    public static async Task GetAllReleaseData(ReleaseChannel? priorityChannel = null)
+    public static async Task GetAllReleaseData(ReleaseChannel priorityChannel)
     {
-        if (priorityChannel.HasValue)
-            await TryGetReleaseData(priorityChannel.Value);
-
-        var remaining = new[] { ReleaseChannel.DEV, ReleaseChannel.MAIN, ReleaseChannel.LAUNCHER, ReleaseChannel.NET472 };
-
-        bool first = true;
-        foreach (var channel in remaining)
-        {
-            if (priorityChannel.HasValue && channel == priorityChannel.Value)
-                continue;
-            if (!first) await Task.Delay(1000);
-            await TryGetReleaseData(channel);
-            first = false;
-        }
+        await TryGetReleaseData(priorityChannel);
+        await Task.Delay(1000);
+        await TryGetReleaseData(ReleaseChannel.LAUNCHER);
     }
 
     private static async Task<GitHubReleaseData?> TryGetReleaseData(ReleaseChannel channel)

@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TazUOLauncher", "TazUOLauncher\TazUOLauncher.csproj", "{BF6AD583-07B8-ADB1-5301-CB5C0705ACAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TazUOUpdater", "TazUOUpdater\TazUOUpdater.csproj", "{C7D9E5F2-1A3B-4C8D-9E6F-2B4A7C1D5E8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{BF6AD583-07B8-ADB1-5301-CB5C0705ACAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF6AD583-07B8-ADB1-5301-CB5C0705ACAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF6AD583-07B8-ADB1-5301-CB5C0705ACAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7D9E5F2-1A3B-4C8D-9E6F-2B4A7C1D5E8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7D9E5F2-1A3B-4C8D-9E6F-2B4A7C1D5E8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7D9E5F2-1A3B-4C8D-9E6F-2B4A7C1D5E8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7D9E5F2-1A3B-4C8D-9E6F-2B4A7C1D5E8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

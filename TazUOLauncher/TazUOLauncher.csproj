@@ -6,8 +6,8 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AssemblyVersion>2.6.11.0</AssemblyVersion>
-    <FileVersion>2.6.11.0</FileVersion>
+    <AssemblyVersion>2.6.12.0</AssemblyVersion>
+    <FileVersion>2.6.12.0</FileVersion>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
@@ -33,4 +33,19 @@
     <!-- Include all files from the Resources folder as embedded resources -->
     <EmbeddedResource Include="Resources\**\*" />
   </ItemGroup>
+
+  <Target Name="BuildUpdater" AfterTargets="Build">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);OutputPath=$(TargetDir)" />
+  </Target>
+
+  <Target Name="PublishUpdater" AfterTargets="Publish">
+    <ConvertToAbsolutePath Paths="$(PublishDir)">
+      <Output TaskParameter="AbsolutePaths" PropertyName="AbsolutePublishDir" />
+    </ConvertToAbsolutePath>
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);PublishDir=$(AbsolutePublishDir);RuntimeIdentifier=$(RuntimeIdentifier)" />
+  </Target>
 </Project>

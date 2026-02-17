@@ -2,10 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Markdig;
@@ -306,12 +308,53 @@ public partial class MainWindow : Window
                     LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }
     }
-    public void GoToLauncherDownload(object sender, RoutedEventArgs args)
+    public async void GoToLauncherDownload(object sender, RoutedEventArgs args)
     {
-        if (UpdateHelper.HaveData(ReleaseChannel.LAUNCHER))
-            WebLinks.OpenURLInBrowser(UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER].html_url ?? CONSTANTS.LAUNCHER_LATEST_URL);
-        else
-            WebLinks.OpenURLInBrowser(CONSTANTS.LAUNCHER_LATEST_URL);
+        string updaterExe = "TazUOUpdater" + (PlatformHelper.IsWindows ? ".exe" : string.Empty);
+        string updaterPath = Path.Combine(PathHelper.LauncherPath, updaterExe);
+
+        // Fallback: updater not present (e.g. old install)
+        if (!File.Exists(updaterPath))
+        {
+            WebLinks.OpenURLInBrowser(
+                UpdateHelper.HaveData(ReleaseChannel.LAUNCHER)
+                    ? (UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER].html_url ?? CONSTANTS.LAUNCHER_LATEST_URL)
+                    : CONSTANTS.LAUNCHER_LATEST_URL);
+            return;
+        }
+
+        // Download phase — reuse existing progress bar UI
+        viewModel.ShowLauncherUpdateButton = false;
+        viewModel.ShowDownloadProgressBar = true;
+        viewModel.DownloadProgressBarPercent = 0;
+
+        var prog = new DownloadProgress();
+        prog.DownloadProgressChanged += (_, _) =>
+            Dispatcher.UIThread.InvokeAsync(() =>
+                viewModel.DownloadProgressBarPercent = (int)(prog.ProgressPercentage * 100));
+
+        string? zipPath = await UpdateHelper.DownloadLauncherZip(prog);
+
+        if (zipPath == null)
+        {
+            viewModel.ShowDownloadProgressBar = false;
+            viewModel.ShowLauncherUpdateButton = true;
+            viewModel.DangerNoticeString = "Failed to download launcher update.";
+            return;
+        }
+
+        // Spawn updater and exit
+        string launcherExe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+        int pid = Environment.ProcessId;
+
+        Process.Start(new ProcessStartInfo(
+            updaterPath,
+            $"{pid} \"{zipPath}\" \"{PathHelper.LauncherPath}\" \"{launcherExe}\"")
+        {
+            UseShellExecute = false
+        });
+
+        ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();
     }
     public void EditProfilesClicked(object sender, RoutedEventArgs args)
     {

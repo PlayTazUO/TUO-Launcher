@@ -125,6 +125,46 @@ internal static class UpdateHelper
         }
     }
 
+    /// <summary>Downloads the launcher ZIP for the current platform to a temp file. Returns the temp file path, or null on failure.</summary>
+    public static async Task<string?> DownloadLauncherZip(DownloadProgress downloadProgress)
+    {
+        if (!HaveData(ReleaseChannel.LAUNCHER)) return null;
+
+        GitHubReleaseData releaseData = ReleaseData[ReleaseChannel.LAUNCHER];
+
+        if (releaseData == null || releaseData.assets == null) return null;
+
+        string platformZipName = PlatformHelper.GetPlatformZipName();
+
+        GitHubReleaseData.Asset? selectedAsset = null;
+        foreach (GitHubReleaseData.Asset asset in releaseData.assets)
+        {
+            if (asset.name != null && asset.name.EndsWith(platformZipName) && asset.browser_download_url != null)
+            {
+                selectedAsset = asset;
+                break;
+            }
+        }
+
+        if (selectedAsset == null) return null;
+
+        try
+        {
+            string tempFilePath = Path.GetTempFileName();
+            using (var file = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                HttpClient httpClient = new HttpClient();
+                await httpClient.DownloadAsync(selectedAsset.browser_download_url, file, downloadProgress);
+            }
+            return tempFilePath;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            return null;
+        }
+    }
+
     /// <summary>
     /// Only supports dev/main not launcher channel
     /// </summary>

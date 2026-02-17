@@ -54,6 +54,13 @@ public partial class MainWindow : Window
 
     private async void LoadNews()
     {
+        if (BuildInfo.IsDebug)
+        {
+            viewModel.NewsContentString =
+                "<h1> This is some dummy news for debugging </h1> <p>With some more text</p> <ul><li>And a list of some sort of some longer text for testing</li></ul>";
+            return;
+        }
+        
         string news = await UpdateHelper.GetNews(LauncherSettings.GetLauncherSaveFile.DownloadChannel);
         
         var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
@@ -355,19 +362,19 @@ public partial class MainWindow : Window
 public class MainWindowViewModel : INotifyPropertyChanged
 {
     private ObservableCollection<string> profiles = new ObservableCollection<string>();
-    private bool showDownloadProgressBar;
+    private bool showDownloadProgressBar = BuildInfo.IsDebug;
     private int downloadProgressBarPercent;
-    private bool showDownloadAvailableButton;
+    private bool showDownloadAvailableButton = BuildInfo.IsDebug;
     private string remoteVersionString = string.Format(CONSTANTS.REMOTE_VERSION_FORMAT, "Checking...");
     private string localVersionString = "Local Version: Checking...";
     private string localLauncherVersionString = $"Launcher Version: {LauncherVersion.GetLauncherVersion().ToHumanReable()}";
-    private string dangerNoticeString = string.Empty;
+    private string dangerNoticeString = BuildInfo.IsDebug ? "This is an example warning/info text" : string.Empty;
     private bool playButtonEnabled;
     private string updateButtonString = string.Empty;
-    private bool showLauncherUpdateButton;
+    private bool showLauncherUpdateButton = BuildInfo.IsDebug;
     private bool devChannelSelected;
     private bool mainChannelSelected;
-    private bool dangerNoticeStringShowing;
+    private bool dangerNoticeStringShowing = BuildInfo.IsDebug;
     private bool legacyChannelSelected;
     private bool autoApplyUpdates = LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
     private string newsContentString = "Gathering news...";

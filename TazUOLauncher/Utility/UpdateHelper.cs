@@ -19,6 +19,14 @@ internal static class UpdateHelper
 
     public static async Task GetAllReleaseData(ReleaseChannel priorityChannel)
     {
+        if (BuildInfo.IsDebug)
+        {
+            var d = new GitHubReleaseData() { name = "Version v10.10.10.0"};
+            if (!ReleaseData.TryAdd(priorityChannel, d))
+                ReleaseData[priorityChannel] = d;
+            return;
+        }
+        
         await TryGetReleaseData(priorityChannel);
         await Task.Delay(1000);
         await TryGetReleaseData(ReleaseChannel.LAUNCHER);

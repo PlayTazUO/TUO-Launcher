@@ -42,12 +42,12 @@
     
     <Canvas x:Name="MainCanvas" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
         <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
-            <Image.OpacityMask>
-                <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" RadiusX="40%" RadiusY="40%">
-                    <GradientStop Color="Transparent" Offset="0.3" />
-                    <GradientStop Color="Black" Offset="0.8" />
-                </RadialGradientBrush>
-            </Image.OpacityMask>
+            <!-- <Image.OpacityMask> -->
+            <!--     <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" RadiusX="40%" RadiusY="40%"> -->
+            <!--         <GradientStop Color="Transparent" Offset="0.3" /> -->
+            <!--         <GradientStop Color="Black" Offset="0.8" /> -->
+            <!--     </RadialGradientBrush> -->
+            <!-- </Image.OpacityMask> -->
         </Image>
 
         <Menu Name="Menu">
@@ -103,7 +103,7 @@
             </Button>
         </Grid>
         
-        <Panel Canvas.Top="40" Canvas.Left="15" Width="270" Height="380">
+        <Panel Canvas.Top="40" Canvas.Right="15" Width="550" Height="380">
             <Border CornerRadius="5" Background="#212121" Opacity="0.75" />
 
             <ScrollViewer x:Name="NewsArea" Margin="5" Padding="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -112,32 +112,43 @@
             </ScrollViewer>
         </Panel>
 
-        <Rectangle RadiusX="5" RadiusY="5" Width="200" Height="200" Canvas.Left="300" Canvas.Top="40" Opacity="0.85">
-            <!-- <Rectangle.Effect> -->
-            <!--     <DropShadowDirectionEffect ></DropShadowDirectionEffect> -->
-            <!-- </Rectangle.Effect> -->
-            <Rectangle.Fill>
-                <ImageBrush Source="resm:TazUOLauncher.Resources.centerlogo.png?assembly=TazUOLauncher"/>
-            </Rectangle.Fill>
-        </Rectangle>
+        <!-- <Panel Canvas.Top="{Binding #LoginPanel.Bounds.Top}" Canvas.Left="{Binding #LoginPanel.Bounds.Left}" Width="{Binding #LoginPanel.Bounds.Width}" Height="{Binding #LoginPanel.Bounds.Height}"> -->
+        <!--     <Border CornerRadius="5" Background="#212121" Opacity="0.75" /> -->
+        <!-- </Panel> -->
+        
+        <Border CornerRadius="5" Background="#212121" Opacity="0.85" Canvas.Top="40" Canvas.Left="15" Padding="5">
+            <StackPanel Name="LoginPanel" Spacing="3">
+                <!-- TazUO square logo -->
+                <Rectangle RadiusX="5" RadiusY="5" Width="200" Height="200" HorizontalAlignment="Center" Opacity="0.75">
+                    <!-- <Rectangle.Effect> -->
+                    <!--     <DropShadowDirectionEffect ></DropShadowDirectionEffect> -->
+                    <!-- </Rectangle.Effect> -->
+                    <Rectangle.Fill>
+                        <ImageBrush Source="resm:TazUOLauncher.Resources.centerlogo.png?assembly=TazUOLauncher"/>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-        <ComboBox x:Name="ProfileSelector" PlaceholderText="Select a profile" Name="ProfileSelector" Canvas.Left="300" Canvas.Top="255" MaxWidth="200" Width="200" ItemsSource="{Binding Profiles}" SelectionChanged="ProfileSelectionChanged"/>
+                <!-- Profile selector -->
+                <ComboBox x:Name="ProfileSelector" PlaceholderText="Select a profile" Name="ProfileSelector" HorizontalAlignment="Center" MaxWidth="200" Width="200" ItemsSource="{Binding Profiles}" SelectionChanged="ProfileSelectionChanged"/>
 
-        <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled}" Margin="0, 1, 0, 0" Width="200" Canvas.Left="300" Canvas.Top="{Binding #ProfileSelector.Bounds.Bottom}" Click="PlayButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                Play
-        </Button>
+                <Button Name="PlayButton" x:Name="PlayButton" IsEnabled="{Binding PlayButtonEnabled}" Width="200" Click="PlayButtonClicked" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        Play
+                </Button>
 
-        <Panel Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Width="{Binding $parent.Bounds.Width}">
-            <Button x:Name="DownloadUpdateButton" Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadAvailableButton}" HorizontalAlignment="Center" MinHeight="60" MinWidth="100" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
-                    <Label Content="{Binding UpdateButtonString}"/>
-                    <LineBreak/>
-                        Download now</TextBlock>
-            </Button>
-        </Panel>
+                <!-- Download button -->
+                    <Button x:Name="DownloadUpdateButton" IsVisible="{Binding ShowDownloadAvailableButton}" HorizontalAlignment="Center" MinHeight="60" MinWidth="100" Click="DownloadButtonClicked" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" TextAlignment="Center">
+                            <Label Content="{Binding UpdateButtonString}"/>
+                            <LineBreak/>
+                                Download now</TextBlock>
+                    </Button>
 
-        <ProgressBar Margin="0, 1, 0, 0" IsVisible="{Binding ShowDownloadProgressBar}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="400" Height="{Binding #DownloadProgressLabel.Bounds.Height}" Canvas.Left="200" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}" Maximum="100" Value="{Binding DownloadProgressBarPercent}"/>
-        <Label Margin="0, 1, 0, 0" IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" Canvas.Left="330" Canvas.Top="{Binding #PlayButton.Bounds.Bottom}">Downloading an update..</Label>
+                <Grid Width="{Binding $parent.Width}" VerticalAlignment="Center">
+                    <ProgressBar CornerRadius="15" IsVisible="{Binding ShowDownloadProgressBar}" x:Name="DownloadProgressBar" Name="DownloadProgressBar" Width="200" Height="{Binding #DownloadProgressLabel.Bounds.Height}" HorizontalAlignment="Center" Maximum="100" Value="{Binding DownloadProgressBarPercent}"/>
+                    <Label IsVisible="{Binding #DownloadProgressBar.IsVisible}" Name="DownloadProgressLabel" HorizontalAlignment="Center">Downloading an update..</Label>
+                </Grid>
+            </StackPanel>
+        </Border>
 
         <Grid Width="{Binding $parent.Bounds.Width}" Canvas.Bottom="0">
             <Grid.ColumnDefinitions>

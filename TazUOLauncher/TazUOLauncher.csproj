@@ -36,7 +36,7 @@
 
   <Target Name="BuildUpdater" AfterTargets="Build">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
-             Targets="Build"
+             Targets="Restore;Build"
              Properties="Configuration=$(Configuration);OutputPath=$(TargetDir)" />
   </Target>
 
@@ -45,7 +45,7 @@
       <Output TaskParameter="AbsolutePaths" PropertyName="AbsolutePublishDir" />
     </ConvertToAbsolutePath>
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
-             Targets="Publish"
+             Targets="Restore;Publish"
              Properties="Configuration=$(Configuration);PublishDir=$(AbsolutePublishDir);RuntimeIdentifier=$(RuntimeIdentifier)" />
   </Target>
 </Project>

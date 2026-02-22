@@ -24,7 +24,7 @@ internal static class Utility
                 data.name = data.name.Substring(1);            
             else
             {
-                var m = Regex.Match(data.name, @"v(\d+\.\d+\.\d+)");
+                var m = Regex.Match(data.name, @"v(\d+\.\d+\.\d+(?:\.\d+)?)");
                 if (m.Success)
                     data.name = m.Groups[1].Value;
             }

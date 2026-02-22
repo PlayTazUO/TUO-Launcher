@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia;
@@ -49,7 +50,7 @@ public partial class MainWindow : Window
     {
         profileWindow?.Close();
 
-        LauncherSettings.GetLauncherSaveFile.Save().ConfigureAwait(false);
+        _ = LauncherSettings.GetLauncherSaveFile.Save();
 
         base.OnClosing(e);
     }
@@ -310,8 +311,9 @@ public partial class MainWindow : Window
     }
     public async void GoToLauncherDownload(object sender, RoutedEventArgs args)
     {
+        const string updateFolder = "update";
         string updaterExe = "TazUOUpdater" + (PlatformHelper.IsWindows ? ".exe" : string.Empty);
-        string updaterPath = Path.Combine(PathHelper.LauncherPath, updaterExe);
+        string updaterPath = Path.Combine(PathHelper.LauncherPath, updateFolder, updaterExe);
 
         // Fallback: updater not present (e.g. old install)
         if (!File.Exists(updaterPath))
@@ -342,7 +344,25 @@ public partial class MainWindow : Window
             viewModel.DangerNoticeString = "Failed to download launcher update.";
             return;
         }
+        
+        // Move updater to temp directory so it can update the updater
+        var tPath = Directory.CreateTempSubdirectory();
+        
+        foreach (var updaterFile in Directory.EnumerateFiles(Path.Combine(PathHelper.LauncherPath, updateFolder)))
+        {
+            try
+            {
+                File.Copy(updaterFile, Path.Combine(tPath.FullName, Path.GetFileName(updaterFile)), true);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+            }
+        }
+        updaterPath = Path.Combine(tPath.FullName, updaterExe);
 
+        MigrateOldUpdater();
+        
         // Spawn updater and exit
         string launcherExe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
         int pid = Environment.ProcessId;
@@ -351,11 +371,30 @@ public partial class MainWindow : Window
             updaterPath,
             $"{pid} \"{zipPath}\" \"{PathHelper.LauncherPath}\" \"{launcherExe}\"")
         {
+            WorkingDirectory = tPath.FullName,
             UseShellExecute = false
         });
 
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();
     }
+
+    /// <summary>
+    /// The old update was stored directly in the launcher folder, for simplicity’s sake it is now store in update/
+    /// </summary>
+    private void MigrateOldUpdater()
+    {
+        try
+        {
+            foreach (var variable in Directory.EnumerateFiles(PathHelper.LauncherPath))
+                if (Path.GetFileName(variable).StartsWith("TazUOUpdater"))
+                    File.Delete(variable);
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine(e);
+        }
+    }
+    
     public void EditProfilesClicked(object sender, RoutedEventArgs args)
     {
         OpenEditProfiles();

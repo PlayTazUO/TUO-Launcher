@@ -6,8 +6,8 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AssemblyVersion>2.6.13.0</AssemblyVersion>
-    <FileVersion>2.6.13.0</FileVersion>
+    <AssemblyVersion>2.6.14.0</AssemblyVersion>
+    <FileVersion>2.6.14.0</FileVersion>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
@@ -37,7 +37,7 @@
   <Target Name="BuildUpdater" AfterTargets="Build">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
              Targets="Restore;Build"
-             Properties="Configuration=$(Configuration);OutputPath=$(TargetDir)" />
+             Properties="Configuration=$(Configuration);OutputPath=$(TargetDir)\update" />
   </Target>
 
   <Target Name="PublishUpdater" AfterTargets="Publish">
@@ -46,6 +46,6 @@
     </ConvertToAbsolutePath>
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\TazUOUpdater\TazUOUpdater.csproj"
              Targets="Restore;Publish"
-             Properties="Configuration=$(Configuration);PublishDir=$(AbsolutePublishDir);RuntimeIdentifier=$(RuntimeIdentifier)" />
+             Properties="Configuration=$(Configuration);PublishDir=$(AbsolutePublishDir)\update;RuntimeIdentifier=$(RuntimeIdentifier)" />
   </Target>
 </Project>

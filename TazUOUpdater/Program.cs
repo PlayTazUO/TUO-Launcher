@@ -26,7 +26,11 @@ string launcherExePath = args[3];
 try
 {
     var proc = Process.GetProcessById(pid);
-    proc.WaitForExit(30_000);
+    if (!proc.WaitForExit(10_000))
+    {
+        RunLauncher();
+        return 3;
+    }
 }
 catch (ArgumentException)
 {
@@ -40,6 +44,17 @@ Thread.Sleep(500);
 try
 {
     ZipFile.ExtractToDirectory(zipPath, extractDir, overwriteFiles: true);
+
+    foreach (var file in Directory.EnumerateFiles(extractDir))
+    {
+        var fileInfo  = new FileInfo(file);
+        
+        if(fileInfo.CreationTime > DateTime.Now)
+            fileInfo.CreationTime = DateTime.Now;
+        
+        if(fileInfo.LastWriteTime > DateTime.Now)
+            fileInfo.LastWriteTime = DateTime.Now;
+    }
 }
 catch (Exception ex)
 {
@@ -50,20 +65,25 @@ catch (Exception ex)
 // Clean up the temp ZIP
 try { File.Delete(zipPath); } catch { /* ignore */ }
 
-// Restore execute permission on non-Windows
-if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-{
-    var chmod = new ProcessStartInfo
-    {
-        FileName = "chmod",
-        UseShellExecute = false
-    };
-    chmod.ArgumentList.Add("+x");
-    chmod.ArgumentList.Add(launcherExePath);
-    Process.Start(chmod)?.WaitForExit();
-}
+RunLauncher();
 
-// Relaunch the launcher
-Process.Start(new ProcessStartInfo(launcherExePath) { UseShellExecute = true });
+void RunLauncher()
+{
+    // Restore execute permission on non-Windows
+    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+    {
+        var chmod = new ProcessStartInfo
+        {
+            FileName = "chmod",
+            UseShellExecute = false
+        };
+        chmod.ArgumentList.Add("+x");
+        chmod.ArgumentList.Add(launcherExePath);
+        Process.Start(chmod)?.WaitForExit();
+    }
+    
+    // Relaunch the launcher
+    Process.Start(new ProcessStartInfo(launcherExePath) { WorkingDirectory = new FileInfo(launcherExePath).DirectoryName, UseShellExecute = true });
+}
 
 return 0;

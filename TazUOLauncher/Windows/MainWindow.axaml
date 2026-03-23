@@ -4,38 +4,54 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TazUOLauncher"
     xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
-    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Width="800" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
+    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="450" Width="900" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
     
     <Window.Resources>
         <x:String x:Key="NewsStyle">
             body, html { 
-            background-color: black;
+                background-color: black;
+                font-family: 'Verdana', 'Arial', monospace; 
             }
             h1, h2 { 
-            color: #3498db; 
-            border-bottom: 1px solid #246a99;
-            font-family: 'Cascadia Code', 'Consolas', monospace; 
+                color: #3498db; 
+                border-bottom: 1px solid #246a99;
+                font-family: 'Verdana', 'Arial', monospace;  
             }
             h3 { 
-            color: #AB7100;
-            margin: 10px 0px 0px 0px;
-            font-family: 'Cascadia Code', 'Consolas', monospace; 
+                color: #AB7100;
+                margin: 10px 0px 0px 0px;
+                font-family: 'Verdana', 'Arial', monospace; 
             }
             ol, ul { 
-            color: #FFFFFF;
-            margin-left: 20px;
-            margin-bottom: 0px;
-            margin-top: 0px;
-            font-family: 'Cascadia Code', 'Consolas', monospace; 
+                color: #FFFFFF;
+                margin-left: 20px;
+                margin-bottom: 0px;
+                margin-top: 0px;
+                font-family: 'Verdana', 'Arial', monospace; 
             }
             li { 
-            color: #FFFFFF; 
-            margin: 0px;
-            font-family: 'Cascadia Code', 'Consolas', monospace; 
+                color: #FFFFFF; 
+                margin-bottom: 1px;
+                font-family: 'Verdana', 'Arial', monospace; 
             }
             p { 
-            color: #FFFFFF;
-            font-family: 'Cascadia Code', 'Consolas', monospace; 
+                color: #FFFFFF;
+                font-family: 'Verdana', 'Arial', monospace; 
+            }
+            code, pre {
+                display: inline-block;
+                background-color: #212121;
+                padding-left: 1px;
+                color: #00ff00;
+                vertical-align: middle;
+                font-family: 'Verdana', 'Arial', monospace;
+                font-size: 0.9em;
+            }
+            a {                 
+                color: #0090ff;
+                font-style: italic;
+                text-decoration: none;
+                font-family: 'Verdana', 'Arial', monospace; 
             }
         </x:String>
     </Window.Resources>
@@ -103,7 +119,7 @@
             </Button>
         </Grid>
         
-        <Panel Canvas.Top="40" Canvas.Right="15" Width="550" Height="380">
+        <Panel Canvas.Top="40" Canvas.Right="15" Width="650" Height="380">
             <Border CornerRadius="5" Background="#212121" Opacity="0.75" />
 
             <ScrollViewer x:Name="NewsArea" Margin="5" Padding="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

@@ -389,7 +389,7 @@ public partial class MainWindow : Window
             $"{pid} \"{absoluteZipPath}\" \"{absoluteLauncherPath}\" \"{launcherExe}\"")
         {
             WorkingDirectory = tPath.FullName,
-            UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            UseShellExecute = PlatformHelper.IsWindows
         });
 
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();

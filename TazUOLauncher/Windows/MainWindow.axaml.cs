@@ -374,18 +374,22 @@ public partial class MainWindow : Window
         string? rawExe = Process.GetCurrentProcess().MainModule?.FileName;
         string launcherExe = string.IsNullOrEmpty(rawExe) ? string.Empty : Path.GetFullPath(rawExe);
         string absoluteZipPath = Path.GetFullPath(zipPath);
-        string absoluteLauncherPath = Path.GetFullPath(PathHelper.LauncherPath);
+        // Trim any trailing directory separator: AppDomain.CurrentDomain.BaseDirectory always ends
+        // with one, and a path like "C:\foo\bar\" inside quotes makes the \" look like an escaped
+        // quote to Windows argument parsing, breaking the argument boundary.
+        string absoluteLauncherPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(PathHelper.LauncherPath));
         int pid = Environment.ProcessId;
 
-        // UseShellExecute=true is required on Windows: it uses ShellExecuteEx which creates the
-        // updater process outside the launcher's Job Object. Without this the updater is killed
-        // when the launcher (parent) exits because child processes inherit the Job Object.
+        // On Windows, UseShellExecute=true (ShellExecuteEx) creates the updater outside the
+        // launcher's Job Object so it survives the launcher exiting.
+        // On macOS/Linux, UseShellExecute=true routes through open/xdg-open which cannot launch
+        // raw binaries — use false to exec directly.
         Process.Start(new ProcessStartInfo(
             updaterPath,
             $"{pid} \"{absoluteZipPath}\" \"{absoluteLauncherPath}\" \"{launcherExe}\"")
         {
             WorkingDirectory = tPath.FullName,
-            UseShellExecute = true
+            UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         });
 
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();

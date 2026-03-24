@@ -368,16 +368,24 @@ public partial class MainWindow : Window
 
         MigrateOldUpdater();
         
-        // Spawn updater and exit
-        string launcherExe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+        // Spawn updater and exit.
+        // Use absolute paths for all arguments so the updater operates on the correct locations
+        // regardless of the working directory it inherits.
+        string? rawExe = Process.GetCurrentProcess().MainModule?.FileName;
+        string launcherExe = string.IsNullOrEmpty(rawExe) ? string.Empty : Path.GetFullPath(rawExe);
+        string absoluteZipPath = Path.GetFullPath(zipPath);
+        string absoluteLauncherPath = Path.GetFullPath(PathHelper.LauncherPath);
         int pid = Environment.ProcessId;
 
+        // UseShellExecute=true is required on Windows: it uses ShellExecuteEx which creates the
+        // updater process outside the launcher's Job Object. Without this the updater is killed
+        // when the launcher (parent) exits because child processes inherit the Job Object.
         Process.Start(new ProcessStartInfo(
             updaterPath,
-            $"{pid} \"{zipPath}\" \"{PathHelper.LauncherPath}\" \"{launcherExe}\"")
+            $"{pid} \"{absoluteZipPath}\" \"{absoluteLauncherPath}\" \"{launcherExe}\"")
         {
             WorkingDirectory = tPath.FullName,
-            UseShellExecute = false
+            UseShellExecute = true
         });
 
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();

@@ -18,9 +18,9 @@ if (!int.TryParse(args[0], out pid))
     return 1;
 }
 
-string zipPath = args[1];
-string extractDir = args[2];
-string launcherExePath = args[3];
+string zipPath = Path.GetFullPath(args[1]);
+string extractDir = Path.GetFullPath(args[2]);
+string launcherExePath = Path.GetFullPath(args[3]);
 
 // Wait for the launcher to exit
 try
@@ -83,7 +83,15 @@ void RunLauncher()
     }
     
     // Relaunch the launcher
-    Process.Start(new ProcessStartInfo(launcherExePath) { WorkingDirectory = new FileInfo(launcherExePath).DirectoryName, UseShellExecute = true });
+    string workingDir = Path.GetDirectoryName(launcherExePath) ?? Path.GetFullPath(".");
+    // On Windows, UseShellExecute=true (ShellExecuteEx) works correctly for GUI apps.
+    // On macOS/Linux, UseShellExecute=true routes through the OS file-opener (open/xdg-open)
+    // which cannot launch raw Unix binaries — use false to exec directly.
+    Process.Start(new ProcessStartInfo(launcherExePath)
+    {
+        WorkingDirectory = workingDir,
+        UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+    });
 }
 
 return 0;

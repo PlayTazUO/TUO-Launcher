@@ -243,6 +243,8 @@ public partial class MainWindow : Window
             "This is safe, your settings and profile data are saved, but if you store other files in the same TazUO folder, they will be removed.",
             b =>
             {
+                if (!b) return;
+                
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     viewModel.MainChannelSelected = true;
@@ -264,6 +266,8 @@ public partial class MainWindow : Window
             "This is safe, your settings and profile data are saved, but if you store other files in the same TazUO folder, they will be removed.",
             b =>
             {
+                if (!b) return;
+                
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     viewModel.DevChannelSelected = true;
@@ -286,6 +290,8 @@ public partial class MainWindow : Window
             {
                 Dispatcher.UIThread.Invoke(() =>
                 {
+                    if (!b) return;
+                    
                     viewModel.DevChannelSelected = false;
                     viewModel.MainChannelSelected = false;
                     viewModel.LegacyChannelSelected = true;

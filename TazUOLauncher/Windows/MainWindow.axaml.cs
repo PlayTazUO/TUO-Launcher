@@ -191,7 +191,6 @@ public partial class MainWindow : Window
 
         if (nextDownloadType != ReleaseChannel.LAUNCHER && !await UpdateHelper.ProcessRunningShouldWeProceed(this))
         {
-            DoChecksAsync();
             return;
         }
 
@@ -216,7 +215,7 @@ public partial class MainWindow : Window
             ClientExistsChecks();
             ClientUpdateChecks();
             HandleUpdates();
-        }, this);
+        });
     }
     private void OpenEditProfiles()
     {

@@ -172,15 +172,9 @@ internal static class UpdateHelper
     /// <param name="downloadProgress"></param>
     /// <param name="onCompleted"></param>
     /// <param name="parentWindow"></param>
-    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted, Window? parentWindow = null)
+    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
     {
         if (!HaveData(channel)) return;
-
-        if (parentWindow != null && !await ProcessRunningShouldWeProceed(parentWindow))
-        {
-            onCompleted?.Invoke();
-            return;
-        }
 
         GitHubReleaseData releaseData = ReleaseData[channel];
 

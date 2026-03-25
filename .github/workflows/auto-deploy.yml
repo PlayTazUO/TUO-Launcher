@@ -137,6 +137,7 @@ jobs:
           
       - name: Remove old Release
         if: ${{ strategy.job-index == 0 }}
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ env.TAG_NAME }}

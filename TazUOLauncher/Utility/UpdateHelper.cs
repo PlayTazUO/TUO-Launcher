@@ -172,32 +172,9 @@ internal static class UpdateHelper
     /// <param name="downloadProgress"></param>
     /// <param name="onCompleted"></param>
     /// <param name="parentWindow"></param>
-    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted, Window? parentWindow = null)
+    public static async void DownloadAndInstallZip(ReleaseChannel channel, DownloadProgress downloadProgress, Action onCompleted)
     {
         if (!HaveData(channel)) return;
-
-        if (Process.GetProcessesByName("TazUO").Length > 0)
-        {
-            if (parentWindow != null)
-            {
-                bool proceed = await Utility.ShowConfirmationDialog(
-                    parentWindow,
-                    "TazUO is Running",
-                    "TazUO appears to be running. Updating while the client is running may cause issues.\n\nDo you want to proceed with the update anyway?"
-                );
-
-                if (!proceed)
-                {
-                    onCompleted();
-                    return;
-                }
-            }
-            else
-            {
-                onCompleted();
-                return;
-            }
-        }
 
         GitHubReleaseData releaseData = ReleaseData[channel];
 
@@ -260,5 +237,19 @@ internal static class UpdateHelper
             
             onCompleted?.Invoke();
         });
+    }
+
+    public static async Task<bool> ProcessRunningShouldWeProceed(Window parentWindow)
+    {
+        if (Process.GetProcessesByName(CONSTANTS.PROCESS_NAME).Length > 0)
+        {
+            return await Utility.ShowConfirmationDialog(
+                parentWindow,
+                $"{CONSTANTS.PROCESS_NAME} is running",
+                $"{CONSTANTS.PROCESS_NAME} appears to be running. Updating while running may cause issues.\n\nDo you want to proceed with the update anyway?"
+            );
+        }
+        
+        return true;
     }
 }

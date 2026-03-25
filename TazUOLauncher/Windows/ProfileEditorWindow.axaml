@@ -4,6 +4,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TazUOLauncher"
     xmlns:tazUoLauncher="clr-namespace:TazUOLauncher"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
     Width="800" Height="450" CanResize="False"
     x:DataType="vm:ProfileEditorViewModel"
@@ -74,7 +75,13 @@
                         <Button Click="AddPluginClicked" Margin="5, 5, 5, 5" Grid.Row="1" Grid.Column="0">Add</Button>
                         <Button Click="PluginRemoveClicked" Margin="5, 5, 5, 5" Grid.Row="1" Grid.Column="1">Remove</Button>
 
-                        <ListBox x:Name="EntryPluginList" ItemsSource="{Binding Plugins}" Grid.Row="2" Grid.ColumnSpan="2"/>
+                        <ListBox x:Name="EntryPluginList" ItemsSource="{Binding Plugins}" Grid.Row="2" Grid.ColumnSpan="2">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="sys:String">
+                                    <TextBlock Text="{Binding}" ToolTip.Tip="{Binding}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </Grid>
                 </TabItem>
 

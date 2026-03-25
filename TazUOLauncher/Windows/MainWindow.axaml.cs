@@ -176,29 +176,23 @@ public partial class MainWindow : Window
         if (nextDownloadType == ReleaseChannel.INVALID) return false;
 
         if (clientStatus <= ClientStatus.DOWNLOAD_IN_PROGRESS) return false;
-
-        if (Process.GetProcessesByName("TazUO").Length > 0)
-        {
-            bool proceed = await Utility.ShowConfirmationDialog(
-                this,
-                "TazUO is Running",
-                "TazUO appears to be running. Updating while the client is running may cause issues.\n\nDo you want to proceed with the update anyway?"
-            );
-
-            if (!proceed) return false;
-        }
-
+        
         if (nextDownloadType > ReleaseChannel.INVALID && LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates)
         {
-            DoNextDownload();
+            await DoNextDownload();
             return true;
         }
 
         return false;
     }
-    private void DoNextDownload()
+    private async Task DoNextDownload()
     {
         if (nextDownloadType == ReleaseChannel.INVALID || clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+
+        if (nextDownloadType != ReleaseChannel.LAUNCHER && !await UpdateHelper.ProcessRunningShouldWeProceed(this))
+        {
+            return;
+        }
 
         viewModel.ShowDownloadAvailableButton = false;
         var prog = new DownloadProgress();
@@ -221,7 +215,7 @@ public partial class MainWindow : Window
             ClientExistsChecks();
             ClientUpdateChecks();
             HandleUpdates();
-        }, this);
+        });
     }
     private void OpenEditProfiles()
     {
@@ -243,31 +237,68 @@ public partial class MainWindow : Window
     {
         if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN) return;
         
-        viewModel.MainChannelSelected = true;
-        viewModel.DevChannelSelected = false;
-        viewModel.LegacyChannelSelected = false;
-        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.MAIN;
-        RecheckAfterChannelUpdated();
+        _ = Utility.ShowConfirmationDialog(this, 
+            "Are you sure?", 
+            "Changing channels will remove the current installation to ensure we have the correct files.\n" +
+            "This is safe, your settings and profile data are saved, but if you store other files in the same TazUO folder, they will be removed.",
+            b =>
+            {
+                if (!b) return;
+                
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    viewModel.MainChannelSelected = true;
+                    viewModel.DevChannelSelected = false;
+                    viewModel.LegacyChannelSelected = false;
+                    LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.MAIN;
+
+                    RecheckAfterChannelUpdated();
+                });
+            });
     }
     public void SetDevChannelClicked(object sender, RoutedEventArgs args)
     {
         if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV) return;
         
-        viewModel.DevChannelSelected = true;
-        viewModel.MainChannelSelected = false;
-        viewModel.LegacyChannelSelected = false;
-        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.DEV;
-        RecheckAfterChannelUpdated();
+        _ = Utility.ShowConfirmationDialog(this, 
+            "Are you sure?", 
+            "Changing channels will remove the current installation to ensure we have the correct files.\n" +
+            "This is safe, your settings and profile data are saved, but if you store other files in the same TazUO folder, they will be removed.",
+            b =>
+            {
+                if (!b) return;
+                
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    viewModel.DevChannelSelected = true;
+                    viewModel.MainChannelSelected = false;
+                    viewModel.LegacyChannelSelected = false;
+                    LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.DEV;
+                    RecheckAfterChannelUpdated();
+                });
+            });
     }
     public void SetLegacyChannelClicked(object sender, RoutedEventArgs args)
     {
         if (LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472) return;
         
-        viewModel.DevChannelSelected = false;
-        viewModel.MainChannelSelected = false;
-        viewModel.LegacyChannelSelected = true;
-        LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.NET472;
-        RecheckAfterChannelUpdated();
+        _ = Utility.ShowConfirmationDialog(this, 
+            "Are you sure?", 
+            "Changing channels will remove the current installation to ensure we have the correct files.\n" +
+            "This is safe, your settings and profile data are saved, but if you store other files in the same TazUO folder, they will be removed.",
+            b =>
+            {
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    if (!b) return;
+                    
+                    viewModel.DevChannelSelected = false;
+                    viewModel.MainChannelSelected = false;
+                    viewModel.LegacyChannelSelected = true;
+                    LauncherSettings.GetLauncherSaveFile.DownloadChannel = ReleaseChannel.NET472;
+                    RecheckAfterChannelUpdated();
+                });
+            });
     }
 
     private async void RecheckAfterChannelUpdated()
@@ -295,7 +326,7 @@ public partial class MainWindow : Window
     }
     public void DownloadButtonClicked(object sender, RoutedEventArgs args)
     {
-        DoNextDownload();
+        _ = DoNextDownload();
     }
     public void ProfileSelectionChanged(object sender, SelectionChangedEventArgs args)
     {
@@ -368,16 +399,28 @@ public partial class MainWindow : Window
 
         MigrateOldUpdater();
         
-        // Spawn updater and exit
-        string launcherExe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+        // Spawn updater and exit.
+        // Use absolute paths for all arguments so the updater operates on the correct locations
+        // regardless of the working directory it inherits.
+        string? rawExe = Process.GetCurrentProcess().MainModule?.FileName;
+        string launcherExe = string.IsNullOrEmpty(rawExe) ? string.Empty : Path.GetFullPath(rawExe);
+        string absoluteZipPath = Path.GetFullPath(zipPath);
+        // Trim any trailing directory separator: AppDomain.CurrentDomain.BaseDirectory always ends
+        // with one, and a path like "C:\foo\bar\" inside quotes makes the \" look like an escaped
+        // quote to Windows argument parsing, breaking the argument boundary.
+        string absoluteLauncherPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(PathHelper.LauncherPath));
         int pid = Environment.ProcessId;
 
+        // On Windows, UseShellExecute=true (ShellExecuteEx) creates the updater outside the
+        // launcher's Job Object so it survives the launcher exiting.
+        // On macOS/Linux, UseShellExecute=true routes through open/xdg-open which cannot launch
+        // raw binaries — use false to exec directly.
         Process.Start(new ProcessStartInfo(
             updaterPath,
-            $"{pid} \"{zipPath}\" \"{PathHelper.LauncherPath}\" \"{launcherExe}\"")
+            $"{pid} \"{absoluteZipPath}\" \"{absoluteLauncherPath}\" \"{launcherExe}\"")
         {
             WorkingDirectory = tPath.FullName,
-            UseShellExecute = false
+            UseShellExecute = PlatformHelper.IsWindows
         });
 
         ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown();

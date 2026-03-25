@@ -18,4 +18,5 @@ internal static class CONSTANTS {
     public const string ZIP_STARTS_WITH = "TazUO";
     public const string CLASSIC_EXE_NAME = "ClassicUO";
     public const string NATIVE_EXECUTABLE_NAME = "TazUO";
+    public const string PROCESS_NAME = "TazUO";
 }

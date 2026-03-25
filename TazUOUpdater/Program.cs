@@ -5,6 +5,10 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+Console.Title = "TazUO Updater";
+
+Console.WriteLine("Running TazUO Updater...");
+
 if (args.Length < 4)
 {
     Console.Error.WriteLine("Usage: TazUOUpdater <launcher-pid> <zip-path> <extract-dir> <launcher-exe-path>");
@@ -25,6 +29,7 @@ string launcherExePath = Path.GetFullPath(args[3]);
 // Wait for the launcher to exit
 try
 {
+    Console.WriteLine("Waiting for launcher to fully exit...");
     var proc = Process.GetProcessById(pid);
     if (!proc.WaitForExit(10_000))
     {
@@ -39,6 +44,8 @@ catch (ArgumentException)
 
 // Give the OS a moment to release file handles
 Thread.Sleep(500);
+
+Console.WriteLine("Unzipping launcher update into launcher folder...");
 
 // Extract the update ZIP over the launcher directory
 try
@@ -69,6 +76,7 @@ RunLauncher();
 
 void RunLauncher()
 {
+    Console.WriteLine("Starting launcher...");
     // Restore execute permission on non-Windows
     if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {

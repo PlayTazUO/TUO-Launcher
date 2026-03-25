@@ -40,7 +40,7 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
 
@@ -63,7 +63,7 @@ jobs:
           git push origin v${{ env.VERSION }}
 
       - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 9.0.x
 
@@ -134,19 +134,23 @@ jobs:
       - name: Echo release notes
         shell: bash
         run: echo "${{ steps.release_notes.outputs.RELEASE_NOTES }}"
-
+          
       - name: Remove old Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
         if: ${{ strategy.job-index == 0 }}
-        with:
-          delete_release: true
-          tag_name: ${{ env.TAG_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ env.TAG_NAME }}
+        run: |
+          # Delete the release; --yes skips the confirmation prompt
+          # If the release doesn't exist, we use '|| true' to prevent the workflow from failing
+          gh release delete "$TAG" --yes || echo "Release not found, skipping."
+
+          # Delete the tag from the remote repository
+          git push --delete origin "$TAG" || echo "Tag not found, skipping."
 
       - name: Upload Release
         if: ${{ strategy.job-index == 0 }}
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.21.0
         with:
           artifacts: "${{ env.OUTPUT_PATH }}/${{ env.RID }}/${{ env.ZIP_NAME }}.${{ env.RID }}.zip"
           name: "v${{ env.VERSION }}"
@@ -159,6 +163,7 @@ jobs:
           makeLatest: true
           allowUpdates: true
           prerelease: false
+          draft: false
           tag: ${{ env.TAG_NAME }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -177,5 +182,6 @@ jobs:
           allowUpdates: true
           prerelease: false
           replacesArtifacts: false
+          draft: false
           tag: ${{ env.TAG_NAME }}
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -4,7 +4,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TazUOLauncher"
     xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
-    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="450" Width="900" Height="450" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
+    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="650" Width="900" Height="650" CanResize="False" x:DataType="vm:MainWindowViewModel" x:Class="TazUOLauncher.MainWindow" Icon="resm:TazUOLauncher.Resources.icon.ico?assembly=TazUOLauncher" Title="TazUOLauncher">
     
     <Window.Resources>
         <x:String x:Key="NewsStyle">
@@ -57,7 +57,7 @@
     </Window.Resources>
     
     <Canvas x:Name="MainCanvas" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Background="Black">
-        <Image Source="resm:TazUOLauncher.Resources.background.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
+        <Image Source="resm:TazUOLauncher.Resources.newbackground.png?assembly=TazUOLauncher" Stretch="Fill" Width="{Binding $parent.Bounds.Width}" Height="{Binding $parent.Bounds.Height}" Opacity="1">
             <!-- <Image.OpacityMask> -->
             <!--     <RadialGradientBrush Center="50%, 65%" GradientOrigin="50%, 65%" RadiusX="40%" RadiusY="40%"> -->
             <!--         <GradientStop Color="Transparent" Offset="0.3" /> -->
@@ -119,7 +119,7 @@
             </Button>
         </Grid>
         
-        <Panel Canvas.Top="40" Canvas.Right="15" Width="650" Height="380">
+        <Panel Canvas.Top="40" Canvas.Right="15" Width="650" Height="580">
             <Border CornerRadius="5" Background="#212121" Opacity="0.75" />
 
             <ScrollViewer x:Name="NewsArea" Margin="5" Padding="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

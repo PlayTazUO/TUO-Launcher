@@ -113,8 +113,8 @@ internal static class UpdateHelper
             using var client = new HttpClient();
             string rawResponse = await client.GetStringAsync(url);
             
-            if (rawResponse.Length > 8000)
-                rawResponse = rawResponse.Substring(0, 8000) + $"... \n For more see {url}";
+            if (rawResponse.Length > 15000)
+                rawResponse = rawResponse.Substring(0, 15000) + $"<br><br>... \n For more see {url}";
             
             return rawResponse;
         }

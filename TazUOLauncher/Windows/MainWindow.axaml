@@ -75,6 +75,14 @@
                     <MenuItem Header="Install latest main build" Click="DownloadMainBuildClick"/>
                     <MenuItem Header="Install latest dev build" Click="DownloadDevBuildClick"/>
                     <MenuItem Header="Install latest legacy build" Click="DownloadLegacyBuildClick"/>
+                    <MenuItem Header="Install PR build (test)" ItemsSource="{Binding PRBuilds}">
+                        <MenuItem.Styles>
+                            <Style Selector="MenuItem" x:DataType="vm:PRBuildMenuItem">
+                                <Setter Property="Header" Value="{Binding Header}"/>
+                                <Setter Property="Command" Value="{Binding Command}"/>
+                            </Style>
+                        </MenuItem.Styles>
+                    </MenuItem>
                     <MenuItem Header="Import ClassicUO Launcher profiles" Click="ImportCUOLauncherClick"/>
                 </MenuItem>
                 <Separator/>

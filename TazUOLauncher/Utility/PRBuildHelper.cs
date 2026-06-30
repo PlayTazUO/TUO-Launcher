@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -10,8 +9,9 @@ using System.Threading.Tasks;
 namespace TazUOLauncher;
 
 /// <summary>
-/// Loads PRs from PlayTazUO/TazUO that have build artifacts produced by the TUO-PR-Build action and
-/// installs them, allowing players to test features in open PRs before they are merged.
+/// Loads PRs from PlayTazUO/TazUO that have a build published by the TUO-PR-Build action and installs them,
+/// allowing players to test features in open PRs before they are merged. The action publishes a GitHub
+/// release whose name and tag match the PR title, so builds are matched to open PRs by that title.
 /// </summary>
 internal static class PRBuildHelper
 {
@@ -27,8 +27,8 @@ internal static class PRBuildHelper
     }
 
     /// <summary>
-    /// Returns the latest successful TUO-PR-Build run per branch. Returns an empty list when the
-    /// workflow does not exist or no successful runs are available.
+    /// Returns open PRs that have a published build (a release whose name or tag matches the PR title and
+    /// contains an asset for the current platform). Returns an empty list when none are available.
     /// </summary>
     public static async Task<List<PRBuild>> GetPRBuildsAsync()
     {
@@ -36,44 +36,41 @@ internal static class PRBuildHelper
 
         try
         {
-            long? workflowId = await GetWorkflowIdAsync();
-            if (workflowId == null) return result;
+            var prsTask = HttpClient.GetStringAsync(CONSTANTS.PR_LIST_URL);
+            var releasesTask = HttpClient.GetStringAsync(CONSTANTS.RELEASES_URL);
+            await Task.WhenAll(prsTask, releasesTask);
 
-            string runsUrl = string.Format(CONSTANTS.PR_BUILD_WORKFLOW_RUNS_URL, workflowId.Value);
-            string runsJson = await HttpClient.GetStringAsync(runsUrl);
-            var runs = JsonSerializer.Deserialize<WorkflowRunsResponse>(runsJson);
-            if (runs?.workflow_runs == null) return result;
+            var prs = JsonSerializer.Deserialize<List<PullRequestInfo>>(prsTask.Result);
+            var releases = JsonSerializer.Deserialize<List<GitHubReleaseData>>(releasesTask.Result);
+            if (prs == null || releases == null) return result;
 
-            // Used to show friendly "#123 Title" labels instead of raw branch names.
-            var prByBranch = await GetOpenPullRequestsByBranchAsync();
-
-            // Runs come back newest first; keep only the most recent successful run per branch.
-            var seenBranches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var run in runs.workflow_runs)
+            // Index non-draft releases by their tag (e.g. "pr-123-test-build") for deterministic PR matching.
+            var releasesByTag = new Dictionary<string, GitHubReleaseData>(StringComparer.OrdinalIgnoreCase);
+            foreach (var release in releases)
             {
-                if (string.IsNullOrEmpty(run.head_branch)) continue;
-                if (!string.Equals(run.conclusion, "success", StringComparison.OrdinalIgnoreCase)) continue;
-                if (!seenBranches.Add(run.head_branch)) continue;
+                if (release.draft) continue;
+                if (!string.IsNullOrWhiteSpace(release.tag_name))
+                    releasesByTag.TryAdd(release.tag_name.Trim(), release);
+            }
 
-                var build = new PRBuild
-                {
-                    RunId = run.id,
-                    Branch = run.head_branch,
-                    HtmlUrl = run.html_url,
-                    CreatedAt = run.created_at
-                };
+            string platformZipName = PlatformHelper.GetPlatformZipName();
 
-                if (prByBranch.TryGetValue(run.head_branch, out var pr))
-                {
-                    build.PrNumber = pr.number;
-                    build.Title = pr.title ?? run.head_branch;
-                }
-                else
-                {
-                    build.Title = run.display_title ?? run.head_branch;
-                }
+            foreach (var pr in prs)
+            {
+                string expectedTag = string.Format(CONSTANTS.PR_BUILD_TAG_FORMAT, pr.number);
+                if (!releasesByTag.TryGetValue(expectedTag, out var release)) continue;
 
-                result.Add(build);
+                string? downloadUrl = FindPlatformAssetUrl(release, platformZipName);
+                if (downloadUrl == null) continue;
+
+                result.Add(new PRBuild
+                {
+                    PrNumber = pr.number,
+                    Title = string.IsNullOrWhiteSpace(pr.title) ? (release.name ?? expectedTag) : pr.title.Trim(),
+                    Tag = release.tag_name ?? expectedTag,
+                    DownloadUrl = downloadUrl,
+                    HtmlUrl = pr.html_url
+                });
             }
         }
         catch (Exception e)
@@ -84,85 +81,53 @@ internal static class PRBuildHelper
         return result;
     }
 
-    private static async Task<long?> GetWorkflowIdAsync()
+    /// <summary>Picks the release asset matching the current platform, mirroring UpdateHelper's selection.</summary>
+    private static string? FindPlatformAssetUrl(GitHubReleaseData release, string platformZipName)
     {
-        try
-        {
-            string json = await HttpClient.GetStringAsync(CONSTANTS.PR_BUILD_WORKFLOWS_URL);
-            var response = JsonSerializer.Deserialize<WorkflowsResponse>(json);
-            if (response?.workflows == null) return null;
+        if (release.assets == null) return null;
 
-            foreach (var workflow in response.workflows)
-            {
-                if (string.Equals(workflow.name, CONSTANTS.PR_BUILD_WORKFLOW_NAME, StringComparison.OrdinalIgnoreCase) ||
-                    (workflow.path != null && workflow.path.EndsWith(CONSTANTS.PR_BUILD_WORKFLOW_FILE, StringComparison.OrdinalIgnoreCase)))
-                {
-                    return workflow.id;
-                }
-            }
-        }
-        catch (Exception e)
+        // Prefer the platform-specific zip.
+        foreach (var asset in release.assets)
         {
-            Console.WriteLine($"Failed to look up PR build workflow: {e}");
+            if (asset.name != null && asset.name.EndsWith(platformZipName, StringComparison.OrdinalIgnoreCase) && asset.browser_download_url != null)
+                return asset.browser_download_url;
+        }
+
+        // Fall back to the legacy single-zip naming (e.g. TazUO.zip).
+        foreach (var asset in release.assets)
+        {
+            if (asset.name != null && asset.name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) &&
+                asset.name.StartsWith(CONSTANTS.ZIP_STARTS_WITH, StringComparison.OrdinalIgnoreCase) && asset.browser_download_url != null)
+                return asset.browser_download_url;
         }
 
         return null;
     }
 
-    private static async Task<Dictionary<string, PullRequestInfo>> GetOpenPullRequestsByBranchAsync()
-    {
-        var map = new Dictionary<string, PullRequestInfo>(StringComparer.OrdinalIgnoreCase);
-
-        try
-        {
-            string json = await HttpClient.GetStringAsync(CONSTANTS.PR_LIST_URL);
-            var prs = JsonSerializer.Deserialize<List<PullRequestInfo>>(json);
-            if (prs != null)
-            {
-                foreach (var pr in prs)
-                {
-                    if (pr.head?.@ref != null)
-                        map[pr.head.@ref] = pr;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Failed to load open PRs: {e}");
-        }
-
-        return map;
-    }
-
     /// <summary>
-    /// Finds the platform-specific artifact for the build, downloads it, and installs it into the client folder.
-    /// Returns false when no suitable (non-expired) artifact is available or the download/install fails.
+    /// Downloads the build's platform asset and installs it into the client folder. Returns false on failure.
     /// </summary>
     public static async Task<bool> DownloadAndInstallPRBuildAsync(PRBuild build, DownloadProgress progress)
     {
+        if (string.IsNullOrEmpty(build.DownloadUrl)) return false;
+
         try
         {
-            string artifactsUrl = string.Format(CONSTANTS.PR_BUILD_RUN_ARTIFACTS_URL, build.RunId);
-            string json = await HttpClient.GetStringAsync(artifactsUrl);
-            var response = JsonSerializer.Deserialize<ArtifactsResponse>(json);
-            if (response?.artifacts == null) return false;
-
-            string platformZipName = PlatformHelper.GetPlatformZipName();
-
-            ArtifactInfo? selected = response.artifacts.FirstOrDefault(a =>
-                !a.expired && a.name != null && a.name.EndsWith(platformZipName, StringComparison.OrdinalIgnoreCase));
-
-            if (selected == null) return false;
-
-            string downloadUrl = string.Format(CONSTANTS.ARTIFACT_DOWNLOAD_URL, selected.id);
-
-            string outerZip = Path.GetTempFileName();
-            using (var file = new FileStream(outerZip, FileMode.Create, FileAccess.Write, FileShare.None))
+            string tempZip = Path.GetTempFileName();
+            using (var file = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await HttpClient.DownloadAsync(downloadUrl, file, progress);
+                await HttpClient.DownloadAsync(build.DownloadUrl, file, progress);
             }
 
-            await Task.Run(() => InstallArtifactZip(outerZip, platformZipName));
+            await Task.Run(() =>
+            {
+                // Match channel-switch behaviour: wipe the old client first so leftover files don't break the build.
+                ClientHelper.CleanUpClientFiles();
+                Directory.CreateDirectory(PathHelper.ClientPath);
+                ZipFile.ExtractToDirectory(tempZip, PathHelper.ClientPath, true);
+                try { File.Delete(tempZip); } catch { }
+            });
+
             return true;
         }
         catch (Exception e)
@@ -172,125 +137,26 @@ internal static class PRBuildHelper
         }
     }
 
-    /// <summary>
-    /// Installs the downloaded artifact. GitHub wraps uploaded files in an outer zip, so a release-style
-    /// artifact arrives double-nested: outer artifact zip -> inner platform zip -> client files.
-    /// </summary>
-    private static void InstallArtifactZip(string outerZipPath, string platformZipName)
-    {
-        string extractTo = PathHelper.ClientPath;
-        string tempDir = Directory.CreateTempSubdirectory().FullName;
-
-        try
-        {
-            ZipFile.ExtractToDirectory(outerZipPath, tempDir, true);
-
-            string? innerZip = Directory
-                .EnumerateFiles(tempDir, "*.zip", SearchOption.AllDirectories)
-                .FirstOrDefault(f => Path.GetFileName(f).EndsWith(platformZipName, StringComparison.OrdinalIgnoreCase))
-                ?? Directory.EnumerateFiles(tempDir, "*.zip", SearchOption.AllDirectories).FirstOrDefault();
-
-            // Match channel-switch behaviour: wipe the old client first so leftover files don't break the build.
-            ClientHelper.CleanUpClientFiles();
-            Directory.CreateDirectory(extractTo);
-
-            if (innerZip != null)
-            {
-                ZipFile.ExtractToDirectory(innerZip, extractTo, true);
-            }
-            else
-            {
-                // No nested zip: the artifact already contains the raw client files.
-                CopyDirectory(tempDir, extractTo);
-            }
-        }
-        finally
-        {
-            try { Directory.Delete(tempDir, true); } catch { }
-            try { File.Delete(outerZipPath); } catch { }
-        }
-    }
-
-    private static void CopyDirectory(string sourceDir, string destDir)
-    {
-        Directory.CreateDirectory(destDir);
-
-        foreach (string file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
-        {
-            string relative = Path.GetRelativePath(sourceDir, file);
-            string target = Path.Combine(destDir, relative);
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.Copy(file, target, true);
-        }
-    }
-
     // --- GitHub API models (property names mirror the JSON fields) ---
-
-    private class WorkflowsResponse
-    {
-        public List<WorkflowInfo>? workflows { get; set; }
-    }
-
-    private class WorkflowInfo
-    {
-        public long id { get; set; }
-        public string? name { get; set; }
-        public string? path { get; set; }
-    }
-
-    private class WorkflowRunsResponse
-    {
-        public List<WorkflowRun>? workflow_runs { get; set; }
-    }
-
-    private class WorkflowRun
-    {
-        public long id { get; set; }
-        public string? name { get; set; }
-        public string? head_branch { get; set; }
-        public string? display_title { get; set; }
-        public string? status { get; set; }
-        public string? conclusion { get; set; }
-        public string? html_url { get; set; }
-        public string? created_at { get; set; }
-    }
-
-    private class ArtifactsResponse
-    {
-        public List<ArtifactInfo>? artifacts { get; set; }
-    }
-
-    private class ArtifactInfo
-    {
-        public long id { get; set; }
-        public string? name { get; set; }
-        public bool expired { get; set; }
-    }
 
     private class PullRequestInfo
     {
         public int number { get; set; }
         public string? title { get; set; }
-        public PrHead? head { get; set; }
-    }
-
-    private class PrHead
-    {
-        public string? @ref { get; set; }
+        public string? html_url { get; set; }
     }
 }
 
 /// <summary>A PR build entry surfaced in the launcher menu.</summary>
 public class PRBuild
 {
-    public long RunId { get; set; }
-    public string Branch { get; set; } = string.Empty;
-    public int? PrNumber { get; set; }
+    public int PrNumber { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string Tag { get; set; } = string.Empty;
+    public string? DownloadUrl { get; set; }
     public string? HtmlUrl { get; set; }
-    public string? CreatedAt { get; set; }
 
-    public string DisplayName => PrNumber.HasValue ? $"#{PrNumber} {Title}" : $"{Branch}: {Title}";
+    public string DisplayName => $"#{PrNumber} {Title}";
 }
 
 /// <summary>A single entry in the dynamic PR-builds menu (refresh action, status text, or a build).</summary>

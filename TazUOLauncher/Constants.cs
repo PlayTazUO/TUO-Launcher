@@ -20,15 +20,11 @@ internal static class CONSTANTS {
     public const string NATIVE_EXECUTABLE_NAME = "TazUO";
     public const string PROCESS_NAME = "TazUO";
 
-    // PR test builds: artifacts produced by the TUO-PR-Build action on PlayTazUO/TazUO.
-    // These let players test features in open PRs before they are merged.
-    public const string PR_BUILD_WORKFLOW_NAME = "TUO-PR-Build";
-    public const string PR_BUILD_WORKFLOW_FILE = "tuo-pr-build.yml";
-    public const string PR_BUILD_WORKFLOWS_URL = "https://api.github.com/repos/PlayTazUO/TazUO/actions/workflows?per_page=100";
-    public const string PR_BUILD_WORKFLOW_RUNS_URL = "https://api.github.com/repos/PlayTazUO/TazUO/actions/workflows/{0}/runs?per_page=50";
-    public const string PR_BUILD_RUN_ARTIFACTS_URL = "https://api.github.com/repos/PlayTazUO/TazUO/actions/runs/{0}/artifacts";
+    // PR test builds: the TUO-PR-Build action publishes a GitHub release for a PR (named after the PR title)
+    // with the same per-platform zips that normal releases provide, tagged "pr-<number>-test-build". These
+    // let players test features in open PRs before they are merged. Release assets have public download URLs,
+    // so no token is needed. {0} is the PR number.
     public const string PR_LIST_URL = "https://api.github.com/repos/PlayTazUO/TazUO/pulls?state=open&per_page=100";
-    // GitHub Actions artifacts cannot be downloaded anonymously through the API, so we use nightly.link,
-    // a free public proxy that produces tokenless download links for any public repository's artifacts.
-    public const string ARTIFACT_DOWNLOAD_URL = "https://nightly.link/PlayTazUO/TazUO/actions/artifacts/{0}.zip";
+    public const string RELEASES_URL = "https://api.github.com/repos/PlayTazUO/TazUO/releases?per_page=100";
+    public const string PR_BUILD_TAG_FORMAT = "pr-{0}-test-build";
 }

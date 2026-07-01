@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private ReleaseChannel nextDownloadType = ReleaseChannel.INVALID;
     private ProfileEditorWindow? profileWindow;
     private Profile? selectedProfile;
+    private RelayCommand? refreshPRBuildsCommand;
     public MainWindow()
     {
         Instance = this;
@@ -33,7 +34,9 @@ public partial class MainWindow : Window
         viewModel.MainChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.MAIN;
         viewModel.DevChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.DEV;
         viewModel.LegacyChannelSelected = LauncherSettings.GetLauncherSaveFile.DownloadChannel == ReleaseChannel.NET472;
-        
+
+        InitPRBuildsMenu();
+
         DoChecksAsync();
         LoadProfiles();
 
@@ -473,6 +476,103 @@ public partial class MainWindow : Window
         nextDownloadType = ReleaseChannel.NET472;
         DoNextDownload();
     }
+
+    private void InitPRBuildsMenu()
+    {
+        refreshPRBuildsCommand = new RelayCommand(() => _ = RefreshPRBuildsAsync());
+        SetPRBuildsMenu(new[] { new PRBuildMenuItem { Header = "Loading PR builds..." } });
+        _ = RefreshPRBuildsAsync();
+    }
+
+    /// <summary>Rebuilds the dynamic PR-builds menu, always keeping a Refresh action at the top.</summary>
+    private void SetPRBuildsMenu(System.Collections.Generic.IEnumerable<PRBuildMenuItem> entries)
+    {
+        var items = new ObservableCollection<PRBuildMenuItem>
+        {
+            new PRBuildMenuItem { Header = "↻ Refresh", Command = refreshPRBuildsCommand }
+        };
+
+        foreach (var entry in entries)
+            items.Add(entry);
+
+        viewModel.PRBuilds = items;
+    }
+
+    private async Task RefreshPRBuildsAsync()
+    {
+        SetPRBuildsMenu(new[] { new PRBuildMenuItem { Header = "Loading PR builds..." } });
+
+        var builds = await PRBuildHelper.GetPRBuildsAsync();
+
+        var entries = new System.Collections.Generic.List<PRBuildMenuItem>();
+        if (builds.Count == 0)
+        {
+            entries.Add(new PRBuildMenuItem { Header = "No PR builds available" });
+        }
+        else
+        {
+            foreach (var build in builds)
+            {
+                var captured = build;
+                string header = captured.DisplayName;
+                if (header.Length > 60)
+                    header = header.Substring(0, 57) + "...";
+
+                entries.Add(new PRBuildMenuItem
+                {
+                    Header = header,
+                    Command = new RelayCommand(() => DownloadPRBuild(captured))
+                });
+            }
+        }
+
+        Dispatcher.UIThread.Post(() => SetPRBuildsMenu(entries));
+    }
+
+    private async void DownloadPRBuild(PRBuild build)
+    {
+        if (clientStatus == ClientStatus.DOWNLOAD_IN_PROGRESS) return;
+
+        bool proceed = await Utility.ShowConfirmationDialog(this,
+            "Install PR test build?",
+            $"This will replace your current TazUO installation with the build from:\n\n{build.DisplayName}\n\n" +
+            "PR builds are unmerged and experimental, so they may be unstable. Your settings and profile data are kept.\n\n" +
+            "Do you want to continue?");
+
+        if (!proceed) return;
+
+        if (!await UpdateHelper.ProcessRunningShouldWeProceed(this)) return;
+
+        var prog = new DownloadProgress();
+        prog.DownloadProgressChanged += (_, _) =>
+            Dispatcher.UIThread.InvokeAsync(() => viewModel.DownloadProgressBarPercent = (int)(prog.ProgressPercentage * 100));
+
+        viewModel.PlayButtonEnabled = false;
+        viewModel.ShowDownloadAvailableButton = false;
+        clientStatus = ClientStatus.DOWNLOAD_IN_PROGRESS;
+        viewModel.DownloadProgressBarPercent = 0;
+        viewModel.ShowDownloadProgressBar = true;
+
+        bool ok = await PRBuildHelper.DownloadAndInstallPRBuildAsync(build, prog);
+
+        viewModel.ShowDownloadProgressBar = false;
+
+        ClientHelper.LocalClientVersion = ClientHelper.LocalClientVersion; //Client version is re-checked when setting this var
+        ClientExistsChecks();
+
+        if (ok)
+        {
+            // A freshly installed PR build shouldn't immediately be flagged for a channel re-download.
+            nextDownloadType = ReleaseChannel.INVALID;
+            viewModel.ShowDownloadAvailableButton = false;
+        }
+        else
+        {
+            viewModel.DangerNoticeString = "Failed to download the PR build. The artifact may have expired.";
+            // Restore the normal update prompt (ClientExistsChecks may have queued a channel download).
+            HandleUpdates();
+        }
+    }
     public void ImportCUOLauncherClick(object sender, RoutedEventArgs args)
     {
         if (!Utility.TryImportCUOProfiles())
@@ -508,7 +608,18 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private bool legacyChannelSelected;
     private bool autoApplyUpdates = LauncherSettings.GetLauncherSaveFile.AutoDownloadUpdates;
     private string newsContentString = "Gathering news...";
-    
+    private ObservableCollection<PRBuildMenuItem> prBuilds = new ObservableCollection<PRBuildMenuItem>();
+
+    public ObservableCollection<PRBuildMenuItem> PRBuilds
+    {
+        get => prBuilds;
+        set
+        {
+            prBuilds = value;
+            OnPropertyChanged(nameof(PRBuilds));
+        }
+    }
+
     public ObservableCollection<string> Profiles
     {
         get => profiles;

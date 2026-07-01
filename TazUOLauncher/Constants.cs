@@ -19,4 +19,12 @@ internal static class CONSTANTS {
     public const string CLASSIC_EXE_NAME = "ClassicUO";
     public const string NATIVE_EXECUTABLE_NAME = "TazUO";
     public const string PROCESS_NAME = "TazUO";
+
+    // PR test builds: the TUO-PR-Build action publishes a GitHub release for a PR (named after the PR title)
+    // with the same per-platform zips that normal releases provide, tagged "pr-<number>-test-build". These
+    // let players test features in open PRs before they are merged. Release assets have public download URLs,
+    // so no token is needed. {0} is the PR number.
+    public const string PR_LIST_URL = "https://api.github.com/repos/PlayTazUO/TazUO/pulls?state=open&per_page=100";
+    public const string RELEASES_URL = "https://api.github.com/repos/PlayTazUO/TazUO/releases?per_page=100";
+    public const string PR_BUILD_TAG_FORMAT = "pr-{0}-test-build";
 }

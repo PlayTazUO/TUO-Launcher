@@ -341,7 +341,8 @@ internal static class Utility
         {
             Title = title,
             Width = 500,
-            Height = 200,
+            MinHeight = 200,
+            SizeToContent = SizeToContent.Height,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
             ShowInTaskbar = false

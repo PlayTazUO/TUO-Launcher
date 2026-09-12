@@ -1,18 +1,19 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
 
 namespace TazUOLauncher
 {
+    /// <summary>
+    /// Static snow hills drawn along the bottom of the window, above the background image
+    /// but below the rest of the UI.
+    /// </summary>
     public class SnowOverlayControl : Control
     {
         private readonly Rect bounds;
-        private readonly List<Snowflake> _flakes = new();
-        private readonly Random _rand = new();
-        private readonly DispatcherTimer _timer;
+        private readonly List<(StreamGeometry Geometry, IBrush Brush)> _hills = new();
         private bool _initialized;
 
         public SnowOverlayControl(Rect bounds)
@@ -23,80 +24,67 @@ namespace TazUOLauncher
 
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
-
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
-            _timer.Tick += (_, _) =>
-            {
-                UpdateFlakes();
-                InvalidateVisual();
-            };
-            _timer.Start();
         }
 
-        // ✅ Safe measure handling: replace Infinity with finite values
         protected override Size MeasureOverride(Size availableSize)
-        {
-            double width = bounds.Width;
-            double height = bounds.Height;
-            return new Size(width, height);
-        }
+            => new Size(bounds.Width, bounds.Height);
 
         protected override Size ArrangeOverride(Size finalSize) => finalSize;
 
-        private void InitFlakes()
+        private void InitHills()
         {
             if (_initialized || Bounds.Width <= 0 || Bounds.Height <= 0)
                 return;
 
-            _flakes.Clear();
-            for (int i = 0; i < 35; i++)
-            {
-                _flakes.Add(new Snowflake
-                {
-                    X = _rand.NextDouble() * Bounds.Width,
-                    Y = _rand.NextDouble() * Bounds.Height,
-                    Size = _rand.Next(2, 6),
-                    Speed = _rand.NextDouble() * 1.2 + 0.4,
-                    Drift = _rand.NextDouble() * 0.6 - 0.3
-                });
-            }
-
             _initialized = true;
+
+            double w = Bounds.Width;
+            double h = Bounds.Height;
+            var rand = new Random(202512);
+
+            // Back to front: distant hills are taller, lighter and bluer.
+            _hills.Add((BuildHill(w, h, rand, 50, 7), new SolidColorBrush(Color.FromRgb(0xCB, 0xE2, 0xFF))));
+            _hills.Add((BuildHill(w, h, rand, 34, 6), new SolidColorBrush(Color.FromRgb(0xE4, 0xF1, 0xFF))));
+            _hills.Add((BuildHill(w, h, rand, 21, 5), Brushes.White));
         }
 
-        private void UpdateFlakes()
+        private static StreamGeometry BuildHill(double width, double height, Random rand,
+            double baseHeight, double amplitude)
         {
-            if (!_initialized)
-                return;
+            double f1 = 0.006 + rand.NextDouble() * 0.004;
+            double f2 = 0.018 + rand.NextDouble() * 0.012;
+            double p1 = rand.NextDouble() * Math.PI * 2;
+            double p2 = rand.NextDouble() * Math.PI * 2;
 
-            foreach (var f in _flakes)
+            double Surface(double x) =>
+                height - baseHeight
+                       - amplitude * Math.Sin(x * f1 + p1)
+                       - amplitude * 0.5 * Math.Sin(x * f2 + p2);
+
+            var geometry = new StreamGeometry();
+            using (var ctx = geometry.Open())
             {
-                f.Y += f.Speed;
-                f.X += f.Drift;
+                ctx.BeginFigure(new Point(0, height), true);
 
-                if (f.Y > Bounds.Height)
-                {
-                    f.Y = -f.Size;
-                    f.X = _rand.NextDouble() * Bounds.Width;
-                }
+                const double step = 6;
+                for (double x = step; x < width; x += step)
+                    ctx.LineTo(new Point(x, Surface(x)));
 
-                if (f.X < -f.Size) f.X = Bounds.Width + f.Size;
-                if (f.X > Bounds.Width + f.Size) f.X = -f.Size;
+                ctx.LineTo(new Point(width, Surface(width)));
+                ctx.LineTo(new Point(width, height));
+                ctx.EndFigure(true);
             }
+
+            return geometry;
         }
 
         public override void Render(DrawingContext context)
         {
             base.Render(context);
-            InitFlakes();
+            InitHills();
 
-            foreach (var f in _flakes)
-                context.DrawEllipse(Brushes.White, null, new Point(f.X, f.Y), f.Size, f.Size);
-        }
-
-        private class Snowflake
-        {
-            public double X, Y, Size, Speed, Drift;
+            foreach (var (geometry, brush) in _hills)
+                context.DrawGeometry(brush, null, geometry);
         }
     }
-    }
+}

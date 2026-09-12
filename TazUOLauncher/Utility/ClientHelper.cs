@@ -80,7 +80,14 @@ internal static class ClientHelper
         
         if (File.Exists(PathHelper.ClientExecutablePath(true)))
         {
-            return AssemblyName.GetAssemblyName(PathHelper.ClientExecutablePath(true)).Version ?? new Version(0, 0, 0, 0);
+            try
+            {
+                return AssemblyName.GetAssemblyName(PathHelper.ClientExecutablePath(true)).Version ?? new Version(0, 0, 0, 0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading installed client version: {ex}");
+            }
         }
         
         return new Version(0, 0, 0, 0);

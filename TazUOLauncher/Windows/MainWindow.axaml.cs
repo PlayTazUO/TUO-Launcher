@@ -56,8 +56,11 @@ public partial class MainWindow : Window
         periodicChecks.Start();
         
         DateTime dt = DateTime.Now;
+        // Insert above the background image (index 0) but below the rest of the UI.
         if(dt.Month == 12)
-            MainCanvas.Children.Add(new SnowOverlayControl(new Rect(0, 0, 800, 450)));
+            MainCanvas.Children.Insert(1, new SnowOverlayControl(new Rect(0, 0, 900, 650)));
+        else if(dt.Month == 10)
+            MainCanvas.Children.Insert(1, new PumpkinOverlayControl(new Rect(0, 0, 900, 650)));
     }
     protected override void OnClosing(WindowClosingEventArgs e)
     {

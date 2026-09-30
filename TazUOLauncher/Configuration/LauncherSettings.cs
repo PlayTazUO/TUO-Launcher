@@ -20,7 +20,7 @@ internal class LauncherSettings
         {
             try
             {
-                var p = Path.Combine(PathHelper.LauncherPath, "launcherdata.json");
+                var p = Path.Combine(PathHelper.DataPath, "launcherdata.json");
                 if (File.Exists(p))
                 {
                     return JsonSerializer.Deserialize<LauncherSaveFile>(File.ReadAllText(p)) ?? new LauncherSaveFile();
@@ -40,7 +40,7 @@ internal class LauncherSettings
             {
                 try
                 {
-                    var targetPath = Path.Combine(PathHelper.LauncherPath, "launcherdata.json");
+                    var targetPath = Path.Combine(PathHelper.DataPath, "launcherdata.json");
                     var tempPath = targetPath + ".tmp";
                     
                     File.WriteAllText(tempPath, JsonSerializer.Serialize<LauncherSaveFile>(this));

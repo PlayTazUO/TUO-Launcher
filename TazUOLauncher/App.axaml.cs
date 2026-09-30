@@ -15,6 +15,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            PathHelper.Initialize();
             desktop.MainWindow = new MainWindow();
         }
 

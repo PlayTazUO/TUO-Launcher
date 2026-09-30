@@ -134,7 +134,7 @@ internal static class UpdateHelper
 
         if (releaseData == null || releaseData.assets == null) return null;
 
-        string platformZipName = PlatformHelper.GetPlatformZipName();
+        string platformZipName = PlatformHelper.GetLauncherZipName();
 
         GitHubReleaseData.Asset? selectedAsset = null;
         foreach (GitHubReleaseData.Asset asset in releaseData.assets)

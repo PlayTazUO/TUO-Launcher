@@ -20,4 +20,11 @@ public static class PlatformHelper
         if (IsMacArm) return "osx-arm64.zip";
         if (IsMac) return "osx-x64.zip";
         return "Unknown";
-    } }
+    }
+
+    public static string GetLauncherZipName()
+    {
+        string platformZipName = GetPlatformZipName();
+        return PathHelper.IsMacAppBundle ? platformZipName.Replace(".zip", ".app.zip") : platformZipName;
+    }
+}

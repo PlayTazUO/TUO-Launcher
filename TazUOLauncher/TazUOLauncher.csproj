@@ -16,6 +16,8 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
+    <!-- Avalonia.FreeDesktop currently pulls in the vulnerable 0.21.2; 0.21.3 includes the GHSA-xrw6-gwf8-vvr9 fix. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
     <PackageReference Include="Avalonia.HtmlRenderer" Version="11.2.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />

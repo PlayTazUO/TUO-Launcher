@@ -16,6 +16,7 @@ internal class LauncherSettings
         public ReleaseChannel DownloadChannel { get; set; } = ReleaseChannel.MAIN;
         public bool AutoDownloadUpdates { get; set; } = false;
 
+        /// <summary>Loads launcher settings from the configured data directory.</summary>
         public static LauncherSaveFile Get()
         {
             try
@@ -34,6 +35,7 @@ internal class LauncherSettings
             return new LauncherSaveFile();
         }
 
+        /// <summary>Persists launcher settings to the configured data directory.</summary>
         public async Task Save()
         {
             await Task.Run(() =>

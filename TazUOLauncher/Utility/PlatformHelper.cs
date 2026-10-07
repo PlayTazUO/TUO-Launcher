@@ -13,6 +13,7 @@ public static class PlatformHelper
     
     public static bool IsMacArm => IsMac && RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
     
+    /// <summary>Gets the release ZIP name for the current operating system and architecture.</summary>
     public static string GetPlatformZipName()
     {
         if (IsWindows) return "win-x64.zip";
@@ -22,6 +23,7 @@ public static class PlatformHelper
         return "Unknown";
     }
 
+    /// <summary>Gets the launcher ZIP name, selecting the app bundle asset for macOS bundles.</summary>
     public static string GetLauncherZipName()
     {
         string platformZipName = GetPlatformZipName();

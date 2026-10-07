@@ -12,8 +12,13 @@ public static class PathHelper
         : null;
 
     public static string LauncherPath { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+    /// <summary>Gets the containing macOS app bundle, or <see langword="null"/> for a non-bundled launch.</summary>
     public static string? AppBundlePath => appBundlePath;
+
+    /// <summary>Indicates whether the launcher is running from a macOS app bundle.</summary>
     public static bool IsMacAppBundle => appBundlePath != null;
+
+    /// <summary>Gets the directory used for writable launcher data.</summary>
     public static string DataPath { get; } = GetDataPath();
     public static string ProfilesPath { get; set; } = Path.Combine(DataPath, "Profiles");
     public static string SettingsPath { get; set; } = Path.Combine(ProfilesPath, "Settings");
@@ -21,6 +26,7 @@ public static class PathHelper
     /// <summary>Writable TazUO client directory; app bundles store it in Application Support.</summary>
     public static string ClientPath { get; set; } = Path.Combine(DataPath, CONSTANTS.CLIENT_DIRECTORY_NAME);
 
+    /// <summary>Creates the data directory and migrates recognized portable data for app bundles.</summary>
     public static void Initialize()
     {
         if (!IsMacAppBundle)
@@ -30,6 +36,7 @@ public static class PathHelper
         MigratePortableDataIfPresent();
     }
 
+    /// <summary>Checks whether the app bundle's parent directory permits in-place updates.</summary>
     public static bool CanUpdateAppBundle()
     {
         if (AppBundlePath == null)
@@ -53,6 +60,7 @@ public static class PathHelper
         }
     }
 
+    /// <summary>Returns the platform-appropriate launcher data directory.</summary>
     private static string GetDataPath()
     {
         if (appBundlePath == null)
@@ -62,6 +70,7 @@ public static class PathHelper
         return Path.Combine(home, "Library", "Application Support", "TazUO Launcher");
     }
 
+    /// <summary>Finds the nearest enclosing <c>.app</c> directory.</summary>
     private static string? FindAppBundle(string baseDirectory)
     {
         for (DirectoryInfo? directory = new DirectoryInfo(Path.GetFullPath(baseDirectory)); directory != null; directory = directory.Parent)
@@ -73,6 +82,7 @@ public static class PathHelper
         return null;
     }
 
+    /// <summary>Attempts to migrate portable data from beside the app bundle.</summary>
     private static void MigratePortableDataIfPresent()
     {
         string? legacyRoot = Directory.GetParent(AppBundlePath!)?.FullName;
@@ -82,12 +92,14 @@ public static class PathHelper
         PortableDataMigrator.TryMigrate(legacyRoot, DataPath);
     }
 
+    /// <summary>Copies a file only when the source exists and the destination is absent.</summary>
     internal static void CopyIfMissing(string source, string destination)
     {
         if (File.Exists(source) && !File.Exists(destination) && !Directory.Exists(destination))
             File.Copy(source, destination);
     }
 
+    /// <summary>Copies a directory tree without overwriting existing files or following links.</summary>
     internal static void CopyDirectoryIfMissing(string source, string destination)
     {
         if (!Directory.Exists(source) || File.Exists(destination))
@@ -107,6 +119,7 @@ public static class PathHelper
         }
     }
 
+    /// <summary>Gets the expected path to the native client executable.</summary>
     public static string NativeClientPath()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -122,6 +135,7 @@ public static class PathHelper
         return string.Empty;
     }
 
+    /// <summary>Resolves the client executable path, optionally selecting the legacy executable.</summary>
     public static string ClientExecutablePath(bool returnExeOnly = false, bool legacyOnly = false)
     {
         try
@@ -139,6 +153,7 @@ public static class PathHelper
         return string.Empty;
     }
 
+    /// <summary>Resolves the platform-specific native or classic client executable name.</summary>
     private static string NativePath(bool returnExeOnly)
     {
         string exeName;

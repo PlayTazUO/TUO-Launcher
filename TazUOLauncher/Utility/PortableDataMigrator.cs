@@ -5,6 +5,10 @@ namespace TazUOLauncher;
 
 internal static class PortableDataMigrator
 {
+    /// <summary>Migrates recognized portable settings, profiles, and client files without overwriting existing data.</summary>
+    /// <param name="legacyRoot">Directory containing the portable installation.</param>
+    /// <param name="dataRoot">Directory receiving the migrated data.</param>
+    /// <returns><see langword="true"/> if migration is complete or already marked complete.</returns>
     internal static bool TryMigrate(string legacyRoot, string dataRoot)
     {
         string marker = Path.Combine(dataRoot, PathHelper.MigrationMarker);

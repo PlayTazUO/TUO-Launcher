@@ -368,6 +368,7 @@ public partial class MainWindow : Window
                     LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }
     }
+    /// <summary>Downloads and launches the updater for the latest launcher release.</summary>
     public async void GoToLauncherDownload(object sender, RoutedEventArgs args)
     {
         const string updateFolder = "update";

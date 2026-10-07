@@ -368,6 +368,7 @@ public partial class MainWindow : Window
                     LauncherSettings.GetLauncherSaveFile.LastSelectedProfileName = selectedProfile.Name;
         }
     }
+    /// <summary>Downloads and launches the updater for the latest launcher release.</summary>
     public async void GoToLauncherDownload(object sender, RoutedEventArgs args)
     {
         const string updateFolder = "update";
@@ -381,6 +382,13 @@ public partial class MainWindow : Window
                 UpdateHelper.HaveData(ReleaseChannel.LAUNCHER)
                     ? (UpdateHelper.ReleaseData[ReleaseChannel.LAUNCHER].html_url ?? CONSTANTS.LAUNCHER_LATEST_URL)
                     : CONSTANTS.LAUNCHER_LATEST_URL);
+            return;
+        }
+
+        if (PathHelper.IsMacAppBundle && !PathHelper.CanUpdateAppBundle())
+        {
+            viewModel.DangerNoticeString = "TazUO Launcher is installed in a protected location. Download the update and replace the app manually.";
+            WebLinks.OpenURLInBrowser(CONSTANTS.LAUNCHER_LATEST_URL);
             return;
         }
 
@@ -400,7 +408,11 @@ public partial class MainWindow : Window
         {
             viewModel.ShowDownloadProgressBar = false;
             viewModel.ShowLauncherUpdateButton = true;
-            viewModel.DangerNoticeString = "Failed to download launcher update.";
+            viewModel.DangerNoticeString = PathHelper.IsMacAppBundle
+                ? "Could not download the app update. Download the latest app bundle manually."
+                : "Failed to download launcher update.";
+            if (PathHelper.IsMacAppBundle)
+                WebLinks.OpenURLInBrowser(CONSTANTS.LAUNCHER_LATEST_URL);
             return;
         }
         
@@ -426,12 +438,15 @@ public partial class MainWindow : Window
         // Use absolute paths for all arguments so the updater operates on the correct locations
         // regardless of the working directory it inherits.
         string? rawExe = Process.GetCurrentProcess().MainModule?.FileName;
-        string launcherExe = string.IsNullOrEmpty(rawExe) ? string.Empty : Path.GetFullPath(rawExe);
+        string launcherTarget = PathHelper.AppBundlePath ?? (string.IsNullOrEmpty(rawExe) ? string.Empty : Path.GetFullPath(rawExe));
         string absoluteZipPath = Path.GetFullPath(zipPath);
         // Trim any trailing directory separator: AppDomain.CurrentDomain.BaseDirectory always ends
         // with one, and a path like "C:\foo\bar\" inside quotes makes the \" look like an escaped
         // quote to Windows argument parsing, breaking the argument boundary.
-        string absoluteLauncherPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(PathHelper.LauncherPath));
+        string updateDirectory = PathHelper.AppBundlePath == null
+            ? PathHelper.LauncherPath
+            : Directory.GetParent(PathHelper.AppBundlePath)!.FullName;
+        string absoluteUpdateDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(updateDirectory));
         int pid = Environment.ProcessId;
 
         // On Windows, UseShellExecute=true (ShellExecuteEx) creates the updater outside the
@@ -440,7 +455,7 @@ public partial class MainWindow : Window
         // raw binaries — use false to exec directly.
         Process.Start(new ProcessStartInfo(
             updaterPath,
-            $"{pid} \"{absoluteZipPath}\" \"{absoluteLauncherPath}\" \"{launcherExe}\"")
+            $"{pid} \"{absoluteZipPath}\" \"{absoluteUpdateDirectory}\" \"{launcherTarget}\" \"{CONSTANTS.LAUNCHER_LATEST_URL}\"")
         {
             WorkingDirectory = tPath.FullName,
             UseShellExecute = PlatformHelper.IsWindows

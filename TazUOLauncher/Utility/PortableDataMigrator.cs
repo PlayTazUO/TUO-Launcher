@@ -11,7 +11,9 @@ internal static class PortableDataMigrator
         if (File.Exists(marker))
             return true;
 
-        if (!File.Exists(Path.Combine(legacyRoot, "launcherdata.json")))
+        if (!File.Exists(Path.Combine(legacyRoot, "launcherdata.json"))
+            && !Directory.Exists(Path.Combine(legacyRoot, "Profiles"))
+            && !Directory.Exists(Path.Combine(legacyRoot, CONSTANTS.CLIENT_DIRECTORY_NAME)))
             return false;
 
         try

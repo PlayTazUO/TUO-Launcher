@@ -105,6 +105,8 @@ internal sealed class Settings
 
     [JsonPropertyName("encryption")] public byte Encryption { get; set; }
 
+    [JsonPropertyName("legacy_login_packets")] public bool LegacyLoginPackets { get; set; }
+
     [JsonPropertyName("plugins")] public string[] Plugins { get; set; } = Array.Empty<string>();
 
     public string GetSaveData()

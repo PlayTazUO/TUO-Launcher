@@ -86,7 +86,7 @@
                 </TabItem>
 
                 <TabItem Header="Advanced">
-                    <Grid RowDefinitions="*,*,*,*,*" ColumnDefinitions="*, *, *, *" Margin="0, 5, 0, 5">
+                    <Grid RowDefinitions="*,*,*,*,*,*" ColumnDefinitions="*, *, *, *" Margin="0, 5, 0, 5">
                         <CheckBox x:Name="EntryAutoLogin" VerticalAlignment="Center" ToolTip.Tip="Automatically log into your character" Grid.ColumnSpan="2">Auto Login</CheckBox>
 
                         <CheckBox x:Name="EntryReconnect" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2">Auto Reconnect</CheckBox>
@@ -101,6 +101,8 @@
 
                         <Label Grid.Row="4" VerticalAlignment="Center">Additional Args</Label>
                         <TextBox x:Name="EntryAdditionalArgs" ToolTip.Tip="Addition args to send to TUO, ex: '-fps 120 -packetlog'" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="2,2,2,2" Padding="5" VerticalContentAlignment="Center"></TextBox>
+
+                        <CheckBox x:Name="EntryLegacyLoginPackets" ToolTip.Tip="For shards that still send the older login packets (features packet and town list). Applied when you select a server." Grid.Row="5" Grid.ColumnSpan="4" VerticalAlignment="Center">Legacy login packets (older shards)</CheckBox>
                     </Grid>
                 </TabItem>
             </TabControl>

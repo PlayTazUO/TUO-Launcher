@@ -128,6 +128,8 @@ public partial class ProfileEditorWindow : Window
             selectedProfile.CUOSettings.AutoLogin = (bool)EntryAutoLogin.IsChecked;
         if (EntryReconnect.IsChecked != null)
             selectedProfile.CUOSettings.Reconnect = (bool)EntryReconnect.IsChecked;
+        if (EntryLegacyLoginPackets.IsChecked != null)
+            selectedProfile.CUOSettings.LegacyLoginPackets = (bool)EntryLegacyLoginPackets.IsChecked;
 
         if (int.TryParse(EntryReconnectTime.Text, out var rt))
             selectedProfile.CUOSettings.ReconnectTime = rt;
@@ -254,6 +256,7 @@ public partial class ProfileEditorWindow : Window
         EntryAutoLogin.IsChecked = selectedProfile.CUOSettings.AutoLogin;
         EntryReconnect.IsChecked = selectedProfile.CUOSettings.Reconnect;
         EntryReconnectTime.Text = selectedProfile.CUOSettings.ReconnectTime.ToString();
+        EntryLegacyLoginPackets.IsChecked = selectedProfile.CUOSettings.LegacyLoginPackets;
         EntryLoginMusic.IsChecked = selectedProfile.CUOSettings.LoginMusic;
         EntryMusicVolume.Value = selectedProfile.CUOSettings.LoginMusicVolume;
 
